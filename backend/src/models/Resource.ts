@@ -1,5 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
+// Interface for the Resource model for TypeScript compiler
 export interface IResource extends Document {
   type: string;
   url: string;
@@ -10,6 +11,7 @@ export interface IResource extends Document {
   votes: number;
 }
 
+// Schema for the Resource model
 const ResourceSchema: Schema = new Schema({
   type: { type: String, required: true },
   url: { type: String, required: true },

@@ -7,23 +7,39 @@ import {
   SheetContent,
   SheetTrigger,
 } from "./ui/sheet";
+import { useAuth } from '@/contexts/AuthContext';
 
 export const Navbar: React.FC = () => {
+  const { isAuthenticated, logout } = useAuth();
+
   return (
     <header className="flex items-center justify-between p-4 border-b">
       <Link to="/" className="text-xl font-bold">
-        Logo
+        EZ
       </Link>
       <nav className="hidden md:flex space-x-4">
         <Link to="/topics" className="text-gray-600 hover:text-gray-900">
           Topics
         </Link>
-        <Link to="/login" className="text-gray-600 hover:text-gray-900">
-          Login
-        </Link>
-        <Link to="/register" className="text-gray-600 hover:text-gray-900">
-          Register
-        </Link>
+        {isAuthenticated ? (
+          <>
+            <Link to="/profile" className="text-gray-600 hover:text-gray-900">
+              Profile
+            </Link>
+            <Button onClick={logout} variant="ghost">
+              Logout
+            </Button>
+          </>
+        ) : (
+          <>
+            <Link to="/login" className="text-gray-600 hover:text-gray-900">
+              Login
+            </Link>
+            <Link to="/register" className="text-gray-600 hover:text-gray-900">
+              Register
+            </Link>
+          </>
+        )}
       </nav>
       <Sheet>
         <SheetTrigger asChild>
@@ -37,12 +53,25 @@ export const Navbar: React.FC = () => {
             <Link to="/topics" className="text-gray-600 hover:text-gray-900">
               Topics
             </Link>
-            <Link to="/login" className="text-gray-600 hover:text-gray-900">
-              Login
-            </Link>
-            <Link to="/register" className="text-gray-600 hover:text-gray-900">
-              Register
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <Link to="/profile" className="text-gray-600 hover:text-gray-900">
+                  Profile
+                </Link>
+                <Button onClick={logout} variant="ghost">
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="text-gray-600 hover:text-gray-900">
+                  Login
+                </Link>
+                <Link to="/register" className="text-gray-600 hover:text-gray-900">
+                  Register
+                </Link>
+              </>
+            )}
           </nav>
         </SheetContent>
       </Sheet>

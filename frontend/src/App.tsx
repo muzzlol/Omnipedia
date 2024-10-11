@@ -1,19 +1,34 @@
 import React from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
-import { SearchBar } from '@/components/Searchbar';
+import { LoginForm } from '@/pages/LoginPage';
+import { RegisterForm } from '@/pages/RegisterPage';
+import { Home } from '@/pages/Home';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 
 const App: React.FC = () => {
   return (
-    <Router>
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <main className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] p-4">
-          <SearchBar />
-        </main>
-      </div>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <div className="min-h-screen bg-gray-50">
+          <Navbar />
+          <main className="container mx-auto mt-8 px-4">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<LoginForm />} />
+              <Route path="/register" element={<RegisterForm />} />
+              <Route element={<ProtectedRoute />}>
+                {/* Add protected routes here */}
+                <Route path="/profile" element={<div>Profile Page</div>} />
+              </Route>
+            </Routes>
+          </main>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 };
 
 export default App;
+

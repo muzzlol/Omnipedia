@@ -19,7 +19,7 @@ const App: React.FC = () => {
               <Route path="/login" element={<LoginForm />} />
               <Route path="/register" element={<RegisterForm />} />
               <Route element={<ProtectedRoute />}>
-                {/* Add protected routes here */}
+                {/* Add poctetard routes here */}
                 <Route path="/profile" element={<div>Profile Page</div>} />
               </Route>
             </Routes>

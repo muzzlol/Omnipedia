@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import slugify from 'slugify';
 
 // Interface for the Topic model for TypeScript compiler
 export interface ITopic extends Document {
@@ -18,7 +19,12 @@ const TopicSchema: Schema = new Schema({
 
 // Ensure slug is generated before saving
 TopicSchema.pre<ITopic>('save', function (next) {
-  this.slug = this.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+  if (this.isModified('name') || !this.slug) {
+    this.slug = slugify(this.name, {
+      lower: true,
+      strict: true, // Remove special characters
+    });
+  }
   next();
 });
 

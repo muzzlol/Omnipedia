@@ -36,25 +36,14 @@ export const getTopics = async (req: Request, res: Response) => {
   }
 };
 
-export const getTopicById = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  try {
-    const topic = await Topic.findById(id).populate('resources');
-    if (!topic) {
-      return res.status(404).json({ message: 'Topic not found' });
-    }
-    res.status(200).json(topic);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
-  }
-};
+// Removed getTopicById as we will use slug instead
 
 export const updateTopic = async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const { slug } = req.params;
   const { description } = req.body;
   try {
-    const topic = await Topic.findByIdAndUpdate(
-      id,
+    const topic = await Topic.findOneAndUpdate(
+      { slug },
       { description },
       { new: true }
     );
@@ -67,42 +56,16 @@ export const updateTopic = async (req: Request, res: Response) => {
   }
 };
 
-export const getTopic = async (req: Request, res: Response) => {
+export const getTopicBySlug = async (req: Request, res: Response) => {
+  const { slug } = req.params;
   try {
-    const topic = await Topic.findOne({ slug: req.params.slug });
+    const topic = await Topic.findOne({ slug }).populate('resources');
     if (!topic) {
-      return res.status(404).json({ message: 'Topic not found' });
-    }
-    res.json({ topic });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-export const searchTopic = async (req: Request, res: Response) => {
-  try {
-    const query = req.query.q as string;
-    const topic = await Topic.findOne({ 
-      $or: [
-        { title: { $regex: query, $options: 'i' } },
-        { slug: { $regex: query, $options: 'i' } }
-      ]
-    });
-    res.json({ topic });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-export const getTopicByName = async (req: Request, res: Response) => {
-  const { name } = req.params;
-  try {
-    const topic = await Topic.findOne({ name }).populate('resources');
-    if (!topic) {
-      return res.status(404).json({ message: 'Topic not found' });
+      return res.status(404).json({ message: `Topic with slug "${slug}" not found.` });
     }
     res.status(200).json(topic);
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error(`Error fetching topic with slug "${slug}":`, error);
+    res.status(500).json({ message: 'Internal server error while fetching the topic.' });
   }
 };

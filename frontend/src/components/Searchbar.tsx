@@ -3,11 +3,14 @@ import { Search } from 'lucide-react';
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import axios from 'axios';
+import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface Topic {
   _id: string;
   name: string;
   description: string;
+  slug: string;
 }
 
 export const SearchBar: React.FC = () => {
@@ -16,24 +19,27 @@ export const SearchBar: React.FC = () => {
   const [suggestions, setSuggestions] = useState<Topic[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [noResults, setNoResults] = useState(false);
+  
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (searchTerm.length > 2) {
         try {
-          const response = await axios.get(`http://localhost:5001/search/topics?query=${searchTerm}`);
+          const response = await axios.get(`http://localhost:5001/search/topics?query=${encodeURIComponent(searchTerm)}`);
           
           if (response.data.topics) {
             setSuggestions(response.data.topics);
             setNoResults(response.data.topics.length === 0);
             setError(null);
           } else {
-            setError('Unexpected response format');
+            setError('Unexpected server response.');
             setSuggestions([]);
             setNoResults(false);
           }
-        } catch (error) {
-          setError('Failed to fetch suggestions');
+        } catch (error: any) {
+          setError('Unable to retrieve suggestions. Please try again later.');
           setSuggestions([]);
           setNoResults(false);
         }
@@ -44,10 +50,46 @@ export const SearchBar: React.FC = () => {
       }
     };
 
-    const debounceTimer = setTimeout(fetchSuggestions, 300);
+    const debounceTimer = setTimeout(fetchSuggestions, 500); // Adjusted debounce time to 500ms
 
     return () => clearTimeout(debounceTimer);
   }, [searchTerm]);
+
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const trimmedTerm = searchTerm.trim();
+      if (trimmedTerm === '') {
+        toast({
+          title: "Empty Search",
+          description: "Please enter a topic name to search.",
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      try {
+        const response = await axios.get(`http://localhost:5001/topics/${encodeURIComponent(trimmedTerm)}`);
+        if (response.status === 200) {
+          navigate(`/topics/${response.data.slug}`); // Navigate using slug
+        }
+      } catch (err: any) {
+        if (err.response && err.response.status === 404) {
+          toast({
+            title: "Topic Not Found",
+            description: `The topic "${trimmedTerm}" does not exist.`,
+            variant: 'destructive',
+          });
+        } else {
+          toast({
+            title: "Search Error",
+            description: "An unexpected error occurred. Please try again later.",
+            variant: 'destructive',
+          });
+        }
+      }
+    }
+  };
 
   return (
     <div className="w-full max-w-md space-y-4">
@@ -61,6 +103,7 @@ export const SearchBar: React.FC = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
           onFocus={() => setShowSuggestions(true)}
           onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
+          onKeyDown={handleKeyDown}
         />
         {error && <div className="text-red-500">{error}</div>}
         {showSuggestions && (
@@ -72,7 +115,10 @@ export const SearchBar: React.FC = () => {
                 <div
                   key={suggestion._id}
                   className="flex items-center px-3 py-2 cursor-pointer hover:bg-gray-100"
-                  onMouseDown={() => setSearchTerm(suggestion.name)}
+                  onMouseDown={() => {
+                    setSearchTerm(suggestion.name);
+                    navigate(`/topics/${suggestion.slug}`); // Navigate on click
+                  }}
                 >
                   <Search className="h-4 w-4 mr-2 text-gray-400" />
                   {suggestion.name}

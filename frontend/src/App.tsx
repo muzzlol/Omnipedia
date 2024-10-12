@@ -6,7 +6,8 @@ import { RegisterForm } from '@/pages/RegisterPage';
 import { Home } from '@/pages/Home';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { TopicPage } from '@/pages/TopicPage'; // Import the new TopicPage component
+import { TopicPage } from '@/pages/TopicPage';
+import { Toaster } from '@/components/ui/toaster';
 
 const App: React.FC = () => {
   return (
@@ -19,13 +20,13 @@ const App: React.FC = () => {
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<LoginForm />} />
               <Route path="/register" element={<RegisterForm />} />
-              <Route path="/topics/:name" element={<TopicPage />} /> {/* Updated route */}
+              <Route path="/topics/:slug" element={<TopicPage />} /> {/* Updated to use :slug */}
               <Route element={<ProtectedRoute />}>
                 <Route path="/profile" element={<div>Profile Page</div>} />
-                {/* Future protected routes can be added here */}
               </Route>
             </Routes>
           </main>
+          <Toaster />
         </div>
       </Router>
     </AuthProvider>

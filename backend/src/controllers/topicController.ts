@@ -93,3 +93,16 @@ export const searchTopic = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+export const getTopicByName = async (req: Request, res: Response) => {
+  const { name } = req.params;
+  try {
+    const topic = await Topic.findOne({ name }).populate('resources');
+    if (!topic) {
+      return res.status(404).json({ message: 'Topic not found' });
+    }
+    res.status(200).json(topic);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};

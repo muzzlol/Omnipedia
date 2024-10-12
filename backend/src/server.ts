@@ -16,14 +16,14 @@ const app = express();
 
 // CORS middleware
 app.use(cors({
-  origin: 'http://localhost:5173', // konect to port runningfrontend
+  origin: 'http://localhost:5173', // Connect to frontend
   credentials: true,
 }));
 
 // Middleware to parse JSON bodies in requests
 app.use(express.json());
 
-// Routes
+// Routes that don't require authentication
 app.use('/auth', authRoutes);
 app.use('/search', searchRoutes);
 app.use('/topics', topicRoutes);
@@ -31,6 +31,7 @@ app.use('/topics', topicRoutes);
 // Apply authMiddleware to routes that require authentication
 app.use(authMiddleware);
 
+// Routes that require authentication
 app.use('/resources', resourceRoutes);
 app.use('/users', userRoutes);
 

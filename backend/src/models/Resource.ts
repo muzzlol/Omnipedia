@@ -8,7 +8,9 @@ export interface IResource extends Document {
   comprehensiveness: number;
   skillLevel: string;
   topic: mongoose.Types.ObjectId;
-  votes: number;
+  creator: mongoose.Types.ObjectId; // Reference to the User who created the resource
+  createdAt: Date; // Timestamp when the resource was created
+  // Removed votes field to manage votes via the Vote model
 }
 
 // Schema for the Resource model
@@ -19,7 +21,9 @@ const ResourceSchema: Schema = new Schema({
   comprehensiveness: { type: Number, min: 1, max: 100, required: true },
   skillLevel: { type: String, enum: ['beginner', 'intermediary', 'advanced'], required: true },
   topic: { type: mongoose.Schema.Types.ObjectId, ref: 'Topic', required: true },
-  votes: { type: Number, default: 0 },
+  creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // New field
+  createdAt: { type: Date, default: Date.now }, // New field
+  // Removed votes field
 });
 
 export default mongoose.model<IResource>('Resource', ResourceSchema);

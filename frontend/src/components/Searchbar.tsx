@@ -50,7 +50,7 @@ export const SearchBar: React.FC = () => {
       }
     };
 
-    const debounceTimer = setTimeout(fetchSuggestions, 500); // Adjusted debounce time to 500ms
+    const debounceTimer = setTimeout(fetchSuggestions, 500); 
 
     return () => clearTimeout(debounceTimer);
   }, [searchTerm]);

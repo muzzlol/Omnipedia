@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
 import Topic from '../models/Topic';
 import { generateDescription } from '../utils/perplexity';
-import { generateResources, ResourceData } from '../utils/perplexity';
-import Resource from '../models/Resource';
 
 export const createTopic = async (req: Request, res: Response) => {
   const { name } = req.body;
@@ -13,9 +11,6 @@ export const createTopic = async (req: Request, res: Response) => {
     }
 
     const generatedDescription = await generateDescription(name);
-    
-    // Generate resources using the Perplexity API
-    const generatedResources: ResourceData[] = await generateResources(name);
 
     const topic = new Topic({
       name,
@@ -67,6 +62,33 @@ export const updateTopic = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Topic not found' });
     }
     res.status(200).json(topic);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const getTopic = async (req: Request, res: Response) => {
+  try {
+    const topic = await Topic.findOne({ slug: req.params.slug });
+    if (!topic) {
+      return res.status(404).json({ message: 'Topic not found' });
+    }
+    res.json({ topic });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const searchTopic = async (req: Request, res: Response) => {
+  try {
+    const query = req.query.q as string;
+    const topic = await Topic.findOne({ 
+      $or: [
+        { title: { $regex: query, $options: 'i' } },
+        { slug: { $regex: query, $options: 'i' } }
+      ]
+    });
+    res.json({ topic });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }

@@ -15,47 +15,40 @@ export const register = async (req: Request, res: Response) => {
         return res.status(400).json({ message: 'Username already taken' });
       }
     }
-    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
     const user = new User({ username, email, password: hashedPassword });
     await user.save();
+
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, { expiresIn: '1h' });
     res.status(201).json({ token });
   } catch (error: any) {
-    console.error('Detailed registration error:', error);
-    res.status(500).json({ 
-      message: 'Server error during registration',
-      details: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
+    console.error('Registration error:', error);
+    res.status(500).json({ message: 'Server error during registration' });
   }
 };
 
 export const login = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
   try {
-    console.log('Login attempt for email:', email);
+    const { email, password } = req.body;
+    const trimmedPassword = password.trim();
+
     const user = await User.findOne({ email });
     if (!user) {
-      console.log('User not found for email:', email);
-      return res.status(400).json({ message: 'User not found' });
+      return res.status(400).json({ message: 'Invalid credentials' });
     }
-    console.log('User found, comparing passwords');
-    const isMatch = await bcrypt.compare(password, user.password);
-    console.log('Password match result:', isMatch);
+
+    const isMatch = await bcrypt.compare(trimmedPassword, user.password);
     if (!isMatch) {
-      console.log('Invalid password for email:', email);
-      return res.status(400).json({ message: 'Invalid email or password' });
+      return res.status(400).json({ message: 'Invalid credentials' });
     }
-    console.log('Password match, generating token');
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, { expiresIn: '1h' });
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, { expiresIn: '24h' });
     res.status(200).json({ token });
-  } catch (error: any) {
-    console.error('Detailed login error:', error);
-    res.status(500).json({ 
-      message: 'Server error during login',
-      details: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 

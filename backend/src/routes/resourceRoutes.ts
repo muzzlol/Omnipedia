@@ -1,13 +1,20 @@
 import express from 'express';
-import { addResource, getResources, voteResource } from '../controllers/resourceController';
+import {
+  addResource,
+  getResources,
+  upvoteResource,
+  downvoteResource,
+} from '../controllers/resourceController';
+import { protect } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
-// Ensure routes are protected by authMiddleware if needed
-// Since authMiddleware is applied globally after /auth routes, no need to add here
-
-router.post('/', addResource);
+// Routes that require authentication
+router.post('/', protect, addResource);
 router.get('/', getResources);
-router.post('/:id/vote', voteResource);
+
+// Voting routes
+router.put('/:id/upvote', protect, upvoteResource);
+router.put('/:id/downvote', protect, downvoteResource);
 
 export default router;

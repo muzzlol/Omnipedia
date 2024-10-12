@@ -7,7 +7,6 @@ import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import resourceRoutes from './routes/resourceRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
-import authMiddleware from './middleware/authMiddleware.js';
 import searchRoutes from './routes/searchRoutes.js';
 
 dotenv.config();
@@ -27,9 +26,6 @@ app.use(express.json());
 app.use('/auth', authRoutes);
 app.use('/search', searchRoutes);
 app.use('/topics', topicRoutes);
-
-// Apply authMiddleware to routes that require authentication
-app.use(authMiddleware);
 
 // Routes that require authentication
 app.use('/resources', resourceRoutes);

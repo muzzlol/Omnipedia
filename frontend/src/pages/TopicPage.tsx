@@ -6,10 +6,11 @@ interface Topic {
   _id: string;
   name: string;
   description: string;
+  slug: string;
 }
 
 export const TopicPage: React.FC = () => {
-  const { name } = useParams<{ name: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const [topic, setTopic] = useState<Topic | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -17,7 +18,7 @@ export const TopicPage: React.FC = () => {
   useEffect(() => {
     const fetchTopic = async () => {
       try {
-        const response = await axios.get(`http://localhost:5001/topics/${name}`);
+        const response = await axios.get(`http://localhost:5001/topics/${slug}`);
         setTopic(response.data);
         setLoading(false);
       } catch (err: any) {
@@ -26,8 +27,13 @@ export const TopicPage: React.FC = () => {
       }
     };
 
-    fetchTopic();
-  }, [name]);
+    if (slug) {
+      fetchTopic();
+    } else {
+      setError('No topic specified');
+      setLoading(false);
+    }
+  }, [slug]);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div className="text-red-500">{error}</div>;

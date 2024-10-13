@@ -1,5 +1,10 @@
 import axios from 'axios';
 
+// Ensure that the environment variables are loaded
+if (!process.env.PPLX_API_KEY) {
+  throw new Error('PPLX_API_KEY is not defined in the environment variables.');
+}
+
 interface GeneratedDescription {
   description: string;
 }
@@ -20,7 +25,7 @@ export async function generateDescription(topicName: string): Promise<GeneratedD
         model: "llama-3.1-sonar-small-128k-online",
         messages: [
           { role: "system", content: "Be precise and concise." },
-          { role: "user", content: `Generate a concise description for the topic: ${topicName}` }
+          { role: "user", content: `Generate a very concise description for the topic: ${topicName}` }
         ],
         temperature: 0.2,
         top_p: 0.9,
@@ -36,11 +41,8 @@ export async function generateDescription(topicName: string): Promise<GeneratedD
     );
 
     if (response.data.choices && response.data.choices.length > 0) {
-      const generatedDescription = response.data.choices[0].message.content;
-
-      return {
-        description: generatedDescription,
-      };
+      const generatedDescription = response.data.choices[0].message.content.trim();
+      return { description: generatedDescription };
     } else {
       throw new Error('Unexpected response format from Perplexity API');
     }
@@ -85,8 +87,7 @@ export async function generateResources(topicName: string): Promise<ResourceData
 
     if (response.data.choices && response.data.choices.length > 0) {
       const resourcesContent = response.data.choices[0].message.content;
-      const resources: ResourceData[] = JSON.parse(resourcesContent);
-      return resources;
+      return JSON.parse(resourcesContent);
     } else {
       throw new Error('Unexpected response format from Perplexity API');
     }
@@ -95,5 +96,6 @@ export async function generateResources(topicName: string): Promise<ResourceData
     throw new Error('Failed to generate resources');
   }
 }
+
 
 

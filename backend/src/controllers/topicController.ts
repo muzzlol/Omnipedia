@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import Topic from '../models/Topic';
-import { generateDescription } from '../utils/perplexity';
 
 export const createTopic = async (req: Request, res: Response) => {
   const { name } = req.body;
@@ -10,11 +9,9 @@ export const createTopic = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Topic already exists' });
     }
 
-    const generatedDescription = await generateDescription(name);
-
     const topic = new Topic({
       name,
-      description: generatedDescription.description,
+      // Slug and description are handled in the pre-save middleware
       resources: [],
     });
 
@@ -22,7 +19,7 @@ export const createTopic = async (req: Request, res: Response) => {
 
     res.status(201).json(topic);
   } catch (error) {
-    console.error(error);
+    console.error('Error creating topic:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -32,11 +29,10 @@ export const getTopics = async (req: Request, res: Response) => {
     const topics = await Topic.find().populate('resources');
     res.status(200).json(topics);
   } catch (error) {
+    console.error('Error fetching topics:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
-
-// Removed getTopicById as we will use slug instead
 
 export const updateTopic = async (req: Request, res: Response) => {
   const { slug } = req.params;
@@ -52,6 +48,7 @@ export const updateTopic = async (req: Request, res: Response) => {
     }
     res.status(200).json(topic);
   } catch (error) {
+    console.error(`Error updating topic with slug "${slug}":`, error);
     res.status(500).json({ message: 'Server error' });
   }
 };

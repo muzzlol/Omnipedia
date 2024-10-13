@@ -7,7 +7,7 @@ import { Home } from '@/pages/Home';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { TopicPage } from '@/pages/TopicPage';
-import { Toaster } from '@/components/ui/toaster';
+import { Toaster } from '@/components/ui/toaster'; 
 
 const App: React.FC = () => {
   return (
@@ -26,7 +26,7 @@ const App: React.FC = () => {
               </Route>
             </Routes>
           </main>
-          <Toaster />
+          <Toaster /> 
         </div>
       </Router>
     </AuthProvider>

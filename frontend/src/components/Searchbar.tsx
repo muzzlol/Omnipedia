@@ -5,6 +5,7 @@ import { Input } from "./ui/input";
 import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'; // Import Dialog components
 
 interface Topic {
   _id: string;
@@ -19,7 +20,9 @@ export const SearchBar: React.FC = () => {
   const [suggestions, setSuggestions] = useState<Topic[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [noResults, setNoResults] = useState(false);
-  
+  const [isDialogOpen, setIsDialogOpen] = useState(false); // Dialog state
+  const [newTopicName, setNewTopicName] = useState(''); // New topic name state
+
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -50,7 +53,7 @@ export const SearchBar: React.FC = () => {
       }
     };
 
-    const debounceTimer = setTimeout(fetchSuggestions, 500); 
+    const debounceTimer = setTimeout(fetchSuggestions, 500); // Debounce time: 500ms
 
     return () => clearTimeout(debounceTimer);
   }, [searchTerm]);
@@ -91,6 +94,55 @@ export const SearchBar: React.FC = () => {
     }
   };
 
+  // Function to handle creating a new topic
+  const handleCreateTopic = async () => {
+    const trimmedName = newTopicName.trim();
+    console.log(`Attempting to create topic with name: "${trimmedName}"`);
+
+    if (trimmedName === '') {
+      toast({
+        title: "Invalid Input",
+        description: "Topic name cannot be empty.",
+        variant: 'destructive',
+      });
+      console.log('Creation aborted: Topic name is empty.');
+      return;
+    }
+
+    try {
+      // Await the POST request to ensure topic is created before redirecting
+      const response = await axios.post('http://localhost:5001/topics', { name: trimmedName });
+      console.log(`POST response status: ${response.status}`);
+      if (response.status === 201) {
+        const { slug } = response.data;
+        console.log(`Topic created with slug: ${slug}`);
+        toast({
+          title: "Topic Created",
+          description: `Topic "${trimmedName}" has been created successfully.`,
+          variant: 'default',
+        });
+        setIsDialogOpen(false); // Close the dialog
+        setNewTopicName(''); // Reset the input
+        navigate(`/topics/${slug}`); // Navigate to the new topic page
+      }
+    } catch (error: any) {
+      console.error('Error during topic creation:', error);
+      if (error.response && error.response.status === 400) {
+        toast({
+          title: "Creation Failed",
+          description: error.response.data.message || "Topic already exists.",
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: "Server Error",
+          description: "An error occurred while creating the topic. Please try again later.",
+          variant: 'destructive',
+        });
+      }
+    }
+  };
+
   return (
     <div className="w-full max-w-md space-y-4">
       <div className="relative">
@@ -126,12 +178,59 @@ export const SearchBar: React.FC = () => {
               ))
             )}
             <div className='flex justify-center p-2 border-t'>
-                <Button className='w-full'>Create Topic</Button>
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className='w-full'>Create Topic</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Create a New Topic</DialogTitle>
+                    <DialogDescription>
+                      Enter the name of the topic you want to create.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <Input
+                    type="text"
+                    placeholder="Topic Name"
+                    value={newTopicName}
+                    onChange={(e) => setNewTopicName(e.target.value)}
+                    className="mt-4"
+                  />
+                  <DialogFooter>
+                    <Button onClick={handleCreateTopic}>Create</Button>
+                    <Button variant="ghost" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         )}
       </div>
-      <Button className="w-full">Create Topic</Button>
+      {/* Optional: Another Create Topic Button outside suggestions */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogTrigger asChild>
+          <Button className="w-full">Create Topic</Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create a New Topic</DialogTitle>
+            <DialogDescription>
+              Enter the name of the topic you want to create.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            type="text"
+            placeholder="Topic Name"
+            value={newTopicName}
+            onChange={(e) => setNewTopicName(e.target.value)}
+            className="mt-4"
+          />
+          <DialogFooter>
+            <Button onClick={handleCreateTopic}>Create</Button>
+            <Button variant="ghost" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -67,10 +67,31 @@ export async function generateResources(topicName: string): Promise<ResourceData
     const response = await axios.post<PerplexityResponse>(
       'https://api.perplexity.ai/chat/completions',
       {
-        model: "llama-3.1-sonar-small-128k-online",
+        model: "llama-3.1-sonar-huge-128k-online",
         messages: [
-          { role: "system", content: "Generate a list of 5 resources related to the topic." },
-          { role: "user", content: `Provide resource details for the topic: ${topicName}. Return the data as a JSON array.` }
+          { role: "system", content: `
+You are an assistant that generates structured resource data for educational topics. 
+When provided with a topic name, create a list of 5 resources in JSON format adhering to the following schema:
+
+{
+  "type": "string",          // Type of the resource (e.g., "video", "book", "article", "pdf")
+  "url": "string",           // Direct URL to the resource
+  "classification": "string",// "free" or "paid"
+  "comprehensiveness": number,// Integer between 1 and 100 indicating coverage depth
+  "skillLevel": "string"     // "beginner", "intermediary", or "advanced"
+}
+
+**Guidelines:**
+- Ensure all fields are present and correctly formatted.
+- The \`comprehensiveness\` value should reflect the depth of the resource:
+  - Comprehensive resources like books should have values in the 80-100 range.
+  - Shorter resources like videos should have values below 50.
+- The \`skillLevel\` should correspond to the complexity of the resource.
+- Provide a diverse mix of resource types.
+- Do not include \`topic\`, \`creator\`, or \`createdAt\` fields; these will be handled separately.
+- Ensure URLs are valid and lead directly to the resource.
+` },
+          { role: "user", content: `Provide resource details for the topic: ${topicName}. Return the data as a JSON array following the schema outlined in the system message.` }
         ],
         temperature: 0.3,
         top_p: 0.8,

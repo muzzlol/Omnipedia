@@ -1,5 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import slugifyLib from 'slugify'; // Renamed to avoid confusion
+import slugifyLib from 'slugify';
 
 // Interface for the Topic model for TypeScript compiler
 export interface ITopic extends Document {
@@ -66,5 +66,21 @@ TopicSchema.pre<ITopic>('validate', async function (next) {
 
   next();
 });
+
+// TopicSchema.pre<ITopic>('validate', async function() {
+//   if (this.isModified('name') || !this.slug) {
+//     this.slug = await customSlugify(this.name);
+//   }
+
+//   if (this.isNew) {
+//     const { generateDescription } = await import('../utils/perplexity');
+//     const descriptionData = await generateDescription(this.name);
+//     if (!descriptionData.description) {
+//       throw new Error('Description generation failed.');
+//     }
+//     this.description = descriptionData.description;
+//   }
+// });
+
 
 export default mongoose.model<ITopic>('Topic', TopicSchema);

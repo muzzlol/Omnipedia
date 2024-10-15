@@ -56,7 +56,11 @@ export const updateTopic = async (req: Request, res: Response) => {
 export const getTopicBySlug = async (req: Request, res: Response) => {
   const { slug } = req.params;
   try {
-    const topic = await Topic.findOne({ slug }).populate('resources');
+    const topic = await Topic.findOne({ slug })
+      .populate({
+        path: 'resources',
+        populate: { path: 'creator', select: 'username' }, // Populate creator's username
+      });
     if (!topic) {
       return res.status(404).json({ message: `Topic with slug "${slug}" not found.` });
     }

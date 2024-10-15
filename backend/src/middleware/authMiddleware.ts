@@ -29,6 +29,9 @@ export const protect = asyncHandler(async (req: AuthRequest, res: Response, next
       next();
     } catch (error) {
       console.error('Auth Middleware Error:', error);
+      if (error instanceof jwt.TokenExpiredError) {
+        return res.status(401).json({ message: 'Token expired', expired: true });
+      }
       res.status(401).json({ message: 'Not authorized, token failed' });
     }
   }

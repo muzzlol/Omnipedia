@@ -4,6 +4,8 @@ import asyncHandler from '../utils/asyncHandler';
 import Vote from '../models/Vote';
 import User from '../models/User';
 import { AuthRequest } from '../types/AuthRequest';
+import { generateResources } from '../utils/perplexity';
+import Topic from '../models/Topic';
 
 // Add a new resource
 export const addResource = asyncHandler(async (req: AuthRequest, res: Response) => {
@@ -130,5 +132,54 @@ export const downvoteResource = asyncHandler(async (req: AuthRequest, res: Respo
   } catch (error) {
     console.error('Error downvoting resource:', error);
     res.status(500).json({ message: 'Server error while downvoting resource' });
+  }
+});
+
+// Add this new controller function
+export const generateResourcesForTopic = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { topicId } = req.body;
+
+  if (!topicId) {
+    return res.status(400).json({ message: 'Topic ID is required.' });
+  }
+
+  try {
+    const topic = await Topic.findById(topicId);
+    if (!topic) {
+      return res.status(404).json({ message: 'Topic not found.' });
+    }
+
+    const resources = await generateResources(topic.name);
+
+    // Save each resource to the database
+    const savedResources = await Promise.all(
+      resources.map(async (resourceData) => {
+        const resource = new Resource({
+          ...resourceData,
+          topic: topic._id,
+          creator: req.user?._id, // Assuming the user is authenticated
+        });
+        await resource.save();
+
+        // Initialize Vote document for each resource
+        const vote = new Vote({
+          resource: resource._id,
+          upvoters: [],
+          downvoters: [],
+        });
+        await vote.save();
+
+        // Add resource to the topic's resources array
+        topic.resources.push(resource._id as any);
+        return resource;
+      })
+    );
+
+    await topic.save();
+
+    res.status(201).json(savedResources);
+  } catch (error) {
+    console.error('Error generating resources:', error);
+    res.status(500).json({ message: 'Server error while generating resources.' });
   }
 });

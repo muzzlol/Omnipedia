@@ -1,9 +1,9 @@
 import axios from 'axios';
 
-// Ensure that the environment variables are loaded
-if (!process.env.PPLX_API_KEY) {
-  throw new Error('PPLX_API_KEY is not defined in the environment variables.');
-}
+// // Ensure that the environment variables are loaded
+// if (!process.env.PPLX_API_KEY) {
+//   throw new Error('PPLX_API_KEY is not defined in the environment variables.');
+// }
 
 interface GeneratedDescription {
   description: string;
@@ -82,6 +82,7 @@ When provided with a topic name, create a list of 5 resources in JSON format adh
 }
 
 **Guidelines:**
+- Your output should be a valid JSON array and nothing else.
 - Ensure all fields are present and correctly formatted.
 - The \`comprehensiveness\` value should reflect the depth of the resource:
   - Comprehensive resources like books should have values in the 80-100 range.
@@ -108,7 +109,12 @@ When provided with a topic name, create a list of 5 resources in JSON format adh
 
     if (response.data.choices && response.data.choices.length > 0) {
       const resourcesContent = response.data.choices[0].message.content;
-      return JSON.parse(resourcesContent);
+
+      // **Edit:** Remove code fences if present
+      const jsonMatch = resourcesContent.match(/```json\s*([\s\S]+?)\s*```/);
+      const cleanJson = jsonMatch ? jsonMatch[1] : resourcesContent;
+
+      return JSON.parse(cleanJson.trim());
     } else {
       throw new Error('Unexpected response format from Perplexity API');
     }

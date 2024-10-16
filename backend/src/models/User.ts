@@ -5,7 +5,7 @@ export interface IUser extends Document {
   username: string;
   email: string;
   password: string;
-  avatarUrl: string; // Ensured avatarUrl is present
+  avatarUrl: string;
   bookmarkedResources: mongoose.Types.ObjectId[];
   followedUsers: mongoose.Types.ObjectId[];
   followers: mongoose.Types.ObjectId[];
@@ -18,7 +18,7 @@ const UserSchema: Schema = new Schema({
   username: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  avatarUrl: { type: String, default: '/default-avatar.png' }, // Default avatar
+  avatarUrl: { type: String, default: 'https://storage.googleapis.com/pepe-search/7geziv879ygxfjhu.jpg' }, // Default avatar
   bookmarkedResources: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Resource' }],
   followedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],

@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import Topic from '../models/Topic';
 import Vote from '../models/Vote';
 import asyncHandler from '../utils/asyncHandler';
+import { AuthRequest } from '../types/AuthRequest';
+import User from '../models/User';
 
 export const createTopic = async (req: Request, res: Response) => {
   const { name } = req.body;
@@ -55,7 +57,7 @@ export const updateTopic = async (req: Request, res: Response) => {
   }
 };
 
-export const getTopicBySlug = asyncHandler(async (req: Request, res: Response) => {
+export const getTopicBySlug = asyncHandler(async (req: AuthRequest, res: Response) => {
   const { slug } = req.params;
 
   try {
@@ -65,12 +67,17 @@ export const getTopicBySlug = asyncHandler(async (req: Request, res: Response) =
       return res.status(404).json({ message: 'Topic not found' });
     }
 
+    // Fetch user's bookmarked resources
+    const user = await User.findById(req.user?._id).select('bookmarkedResources');
+
+    const userBookmarkedResourceIds = user?.bookmarkedResources.map(id => id.toString()) || [];
+
     // Fetch Vote counts for each resource, creating Vote documents if they don't exist
     const resourcesWithVotes = await Promise.all(topic.resources.map(async (resource: any) => {
       let vote = await Vote.findOne({ resource: resource._id });
       
       if (!vote) {
-        // {{ Create a Vote document if it doesn't exist }}
+        // Create a Vote document if it doesn't exist
         vote = await Vote.create({ resource: resource._id, upvoters: [], downvoters: [] });
       }
 
@@ -78,6 +85,7 @@ export const getTopicBySlug = asyncHandler(async (req: Request, res: Response) =
         ...resource.toObject(),
         upvotes: vote.upvoters.length,
         downvotes: vote.downvoters.length,
+        isBookmarked: userBookmarkedResourceIds.includes(resource._id.toString()), // **Set isBookmarked flag**
       };
     }));
 

@@ -10,8 +10,8 @@ export interface IVote extends Document {
 // Schema for the Vote model
 const VoteSchema: Schema = new Schema({
   resource: { type: mongoose.Schema.Types.ObjectId, ref: 'Resource', required: true, unique: true },
-  upvoters: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  downvoters: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  upvoters: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], 
+  downvoters: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], 
 });
 
 export default mongoose.model<IVote>('Vote', VoteSchema);

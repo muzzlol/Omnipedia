@@ -4,7 +4,7 @@ import cors from 'cors';
 import connectDB from './config/db.js';
 import topicRoutes from './routes/topicRoutes.js';
 import authRoutes from './routes/authRoutes.js';
-import userRoutes from './routes/userRoutes.js';
+import userRoutes from './routes/userRoutes.js'; 
 import resourceRoutes from './routes/resourceRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
 import searchRoutes from './routes/searchRoutes.js';
@@ -41,20 +41,16 @@ app.use('/vote', voteRoutes);
 app.use('/resources', resourceRoutes);
 app.use('/users', userRoutes);
 
-// Global Error Handler
+// Error handling middleware
 app.use(errorHandler);
 
-// Connect to MongoDB and start the server
-const startServer = async () => {
-  try {
-    await connectDB();
-    console.log('MongoDB connected');
-    const PORT = process.env.PORT || 5001;
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-  } catch (err) {
-    console.error('Failed to start server:', err);
-    process.exit(1);
-  }
-};
+const PORT = process.env.PORT || 5001;
 
-startServer();
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}).catch(err => {
+  console.error('Failed to connect to the database', err);
+  process.exit(1);
+});

@@ -26,7 +26,7 @@ export function LoginForm() {
     setError('')
     try {
       const data = await apiLogin(email, password)
-      login(data.token)
+      login(data.token, data.user)
       navigate('/')
     } catch (err: any) {
       console.error('Full login error:', err);

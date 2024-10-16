@@ -52,7 +52,7 @@ export const TopicPage: React.FC = () => {
 
   // Define API Base URLs
   const VOTE_BASE_URL = 'http://localhost:5001/vote';
-  const USER_BASE_URL = 'http://localhost:5001/user';
+  const USER_BASE_URL = 'http://localhost:5001/users';
 
   useEffect(() => {
     const fetchTopic = async () => {

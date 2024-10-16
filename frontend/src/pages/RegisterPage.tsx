@@ -27,7 +27,7 @@ export function RegisterForm() {
     setError('')
     try {
       const data = await apiRegister(username, email, password)
-      login(data.token)
+      login(data.token, data.user)
       navigate('/')
     } catch (err: any) {
       console.error('Full registration error:', err);

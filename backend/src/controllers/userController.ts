@@ -4,45 +4,40 @@ import asyncHandler from '../utils/asyncHandler';
 import { AuthRequest } from '../types/AuthRequest';
 import bcrypt from 'bcrypt';
 
-// Get user profile with all relevant populated fields
-export const getProfile = asyncHandler(async (req: AuthRequest, res: Response) => {
+// Get any user's profile by ID
+export const getUserProfile = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { userId } = req.params;
+
   try {
-    const user = await User.findById(req.user?._id)
+    const user = await User.findById(userId)
       .populate('bookmarkedResources')
       .populate('followedUsers', 'username email')
       .populate('followers', 'username email')
       .populate('resources', 'type url classification comprehensiveness skillLevel topic creator createdAt');
-    
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
     res.status(200).json(user);
   } catch (error) {
-    console.error('Error fetching profile:', error);
-    res.status(500).json({ message: 'Server error while fetching profile' });
+    console.error('Error fetching user profile:', error);
+    res.status(500).json({ message: 'Server error while fetching user profile' });
   }
 });
 
-// Update user profile
+// Update user profile - only allow avatarUrl changes
 export const updateProfile = asyncHandler(async (req: AuthRequest, res: Response) => {
-  const { username, email, password } = req.body;
+  const { avatarUrl } = req.body;
   
   try {
-    const updateFields: Partial<IUser> = {};
-
-    if (username) updateFields.username = username;
-    if (email) updateFields.email = email;
-    if (password) {
-      // Hash the new password before saving
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-      updateFields.password = hashedPassword;
+    if (!avatarUrl) {
+      return res.status(400).json({ message: 'Avatar URL is required' });
     }
 
     const updatedUser = await User.findByIdAndUpdate(
       req.user?._id,
-      { $set: updateFields },
+      { $set: { avatarUrl } },
       { new: true, runValidators: true }
     ).select('-password');
 
@@ -194,5 +189,25 @@ export const unfollowUser = asyncHandler(async (req: AuthRequest, res: Response)
   } catch (error) {
     console.error('Error unfollowing user:', error);
     res.status(500).json({ message: 'Server error while unfollowing user' });
+  }
+});
+
+// Get user profile with all relevant populated fields
+export const getProfile = asyncHandler(async (req: AuthRequest, res: Response) => {
+  try {
+    const user = await User.findById(req.user?._id)
+      .populate('bookmarkedResources')
+      .populate('followedUsers', 'username email')
+      .populate('followers', 'username email')
+      .populate('resources', 'type url classification comprehensiveness skillLevel topic creator createdAt');
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error('Error fetching profile:', error);
+    res.status(500).json({ message: 'Server error while fetching profile' });
   }
 });

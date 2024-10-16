@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress'
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
+import VoteModal from '@/components/VoteModal';
 
 interface Topic {
   _id: string;
@@ -22,6 +23,14 @@ interface ResourceData {
   classification: string;
   skillLevel: string;
   comprehensiveness: number;
+  upvotes?: number; // Added upvotes
+  downvotes?: number; // Added downvotes
+}
+
+interface User {
+  _id: string;
+  username: string;
+  avatarUrl: string;
 }
 
 export const TopicPage: React.FC = () => {
@@ -31,15 +40,20 @@ export const TopicPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [resources, setResources] = useState<ResourceData[]>([]);
   const [generating, setGenerating] = useState<boolean>(false);
+  const [upvoters, setUpvoters] = useState<User[]>([]);
+  const [downvoters, setDownvoters] = useState<User[]>([]);
 
   const { toast } = useToast()
+
+  // Update API URLs to match the voteRoutes mounting
+  const VOTE_BASE_URL = 'http://localhost:5001/vote';
 
   useEffect(() => {
     const fetchTopic = async () => {
       try {
         const response = await axios.get(`http://localhost:5001/topics/${slug}`);
         setTopic(response.data);
-        setResources(response.data.resources); // Assuming resources are populated
+        setResources(response.data.resources); // Resources now include upvotes and downvotes
         setLoading(false);
       } catch (err: any) {
         setError('Failed to fetch topic');
@@ -79,6 +93,40 @@ export const TopicPage: React.FC = () => {
       });
     } finally {
       setGenerating(false);
+    }
+  };
+
+  // Fetch upvoters list
+  const fetchUpvoters = async (resourceId: string) => {
+    try {
+      const response = await axios.get(`${VOTE_BASE_URL}/${resourceId}/upvoters`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      setUpvoters(response.data);
+    } catch (err: any) {
+      console.error('Failed to fetch upvoters:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch upvoters.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // Fetch downvoters list
+  const fetchDownvoters = async (resourceId: string) => {
+    try {
+      const response = await axios.get(`${VOTE_BASE_URL}/${resourceId}/downvoters`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      setDownvoters(response.data);
+    } catch (err: any) {
+      console.error('Failed to fetch downvoters:', err);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch downvoters.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -146,11 +194,81 @@ export const TopicPage: React.FC = () => {
                 }>
                   {resource.skillLevel}
                 </Badge>
-                <Badge>{resource.type}</Badge>
               </div>
-              <Progress value={resource.comprehensiveness} />
+              <Progress className="w-3/4" value={resource.comprehensiveness} />
               <p className="text-sm text-muted-foreground mt-2">{resource.comprehensiveness}% Topic Coverage</p>
-              {/* Future: Upvote and Downvote buttons */}
+              <div className="flex justify-between items-center mt-4">
+                <div className="flex space-x-4">
+                  {/* Upvote Button */}
+                  <Button
+                    variant="ghost"
+                    onClick={async () => {
+                      try {
+                        const response = await axios.post(
+                          `${VOTE_BASE_URL}/upvote/${resource._id}`,
+                          {},
+                          { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+                        );
+                        // Update resource with new upvote/downvote counts
+                        setResources(prev =>
+                          prev.map(r => r._id === resource._id ? { ...r, upvotes: response.data.upvotes, downvotes: response.data.downvotes } : r)
+                        );
+                      } catch (err: any) {
+                        toast({
+                          title: 'Error',
+                          description: err.response?.data?.message || 'Failed to upvote.',
+                          variant: 'destructive',
+                        });
+                      }
+                    }}
+                  >
+                    👍 {resource.upvotes || 0}
+                  </Button>
+
+                  {/* Downvote Button */}
+                  <Button
+                    variant="ghost"
+                    onClick={async () => {
+                      try {
+                        const response = await axios.post(
+                          `${VOTE_BASE_URL}/downvote/${resource._id}`,
+                          {},
+                          { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+                        );
+                        // Update resource with new upvote/downvote counts
+                        setResources(prev =>
+                          prev.map(r => r._id === resource._id ? { ...r, upvotes: response.data.upvotes, downvotes: response.data.downvotes } : r)
+                        );
+                      } catch (err: any) {
+                        toast({
+                          title: 'Error',
+                          description: err.response?.data?.message || 'Failed to downvote.',
+                          variant: 'destructive',
+                        });
+                      }
+                    }}
+                  >
+                    👎 {resource.downvotes || 0}
+                  </Button>
+                </div>
+                {/* Optionally, add other elements here */}
+              </div>
+
+              {/* Upvoters Modal */}
+              <VoteModal
+                triggerText={`${resource.upvotes || 0} Upvotes`}
+                title="Upvoters"
+                users={upvoters}
+                fetchUsers={() => fetchUpvoters(resource._id)}
+              />
+
+              {/* Downvoters Modal */}
+              <VoteModal
+                triggerText={`${resource.downvotes || 0} Downvotes`}
+                title="Downvoters"
+                users={downvoters}
+                fetchUsers={() => fetchDownvoters(resource._id)}
+              />
             </CardContent>
           </Card>
         ))}

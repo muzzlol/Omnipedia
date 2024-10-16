@@ -3,9 +3,9 @@ import { createTopic, getTopics, getTopicBySlug, updateTopic } from '../controll
 
 const router = express.Router();
 
-router.post('/', createTopic as any);
+router.post('/', createTopic);
 router.get('/', getTopics);
-router.get('/:slug', getTopicBySlug); // Fetch topic by slug
-router.put('/:slug', updateTopic as any);
+router.get('/:slug', getTopicBySlug); // Fetch topic by slug with vote counts
+router.put('/:slug', updateTopic);
 
 export default router;

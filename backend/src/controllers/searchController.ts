@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import Topic, { ITopic } from '../models/Topic';
+import Vote from '../models/Vote';
+import asyncHandler from '../utils/asyncHandler';
 
 export const searchTopics = async (req: Request, res: Response) => {
   try {

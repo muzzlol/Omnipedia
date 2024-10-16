@@ -183,3 +183,37 @@ export const generateResourcesForTopic = asyncHandler(async (req: AuthRequest, r
     res.status(500).json({ message: 'Server error while generating resources.' });
   }
 });
+
+// Get upvoters for a resource
+export const getUpvoters = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    const vote = await Vote.findOne({ resource: id }).populate('upvoters', 'username avatarUrl');
+    if (!vote) {
+      return res.status(404).json({ message: 'Vote record not found for this resource' });
+    }
+
+    res.status(200).json(vote.upvoters);
+  } catch (error) {
+    console.error('Error fetching upvoters:', error);
+    res.status(500).json({ message: 'Server error while fetching upvoters' });
+  }
+});
+
+// Get downvoters for a resource
+export const getDownvoters = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    const vote = await Vote.findOne({ resource: id }).populate('downvoters', 'username avatarUrl');
+    if (!vote) {
+      return res.status(404).json({ message: 'Vote record not found for this resource' });
+    }
+
+    res.status(200).json(vote.downvoters);
+  } catch (error) {
+    console.error('Error fetching downvoters:', error);
+    res.status(500).json({ message: 'Server error while fetching downvoters' });
+  }
+});

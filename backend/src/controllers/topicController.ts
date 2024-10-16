@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import Topic from '../models/Topic';
+import Vote from '../models/Vote';
+import asyncHandler from '../utils/asyncHandler';
 
 export const createTopic = async (req: Request, res: Response) => {
   const { name } = req.body;
@@ -53,20 +55,38 @@ export const updateTopic = async (req: Request, res: Response) => {
   }
 };
 
-export const getTopicBySlug = async (req: Request, res: Response) => {
+export const getTopicBySlug = asyncHandler(async (req: Request, res: Response) => {
   const { slug } = req.params;
+
   try {
-    const topic = await Topic.findOne({ slug })
-      .populate({
-        path: 'resources',
-        populate: { path: 'creator', select: 'username' }, // Populate creator's username
-      });
+    const topic = await Topic.findOne({ slug }).populate('resources');
+
     if (!topic) {
-      return res.status(404).json({ message: `Topic with slug "${slug}" not found.` });
+      return res.status(404).json({ message: 'Topic not found' });
     }
-    res.status(200).json(topic);
+
+    // Fetch Vote counts for each resource, creating Vote documents if they don't exist
+    const resourcesWithVotes = await Promise.all(topic.resources.map(async (resource: any) => {
+      let vote = await Vote.findOne({ resource: resource._id });
+      
+      if (!vote) {
+        // {{ Create a Vote document if it doesn't exist }}
+        vote = await Vote.create({ resource: resource._id, upvoters: [], downvoters: [] });
+      }
+
+      return {
+        ...resource.toObject(),
+        upvotes: vote.upvoters.length,
+        downvotes: vote.downvoters.length,
+      };
+    }));
+
+    res.status(200).json({
+      ...topic.toObject(),
+      resources: resourcesWithVotes,
+    });
   } catch (error) {
-    console.error(`Error fetching topic with slug "${slug}":`, error);
-    res.status(500).json({ message: 'Internal server error while fetching the topic.' });
+    console.error('Error fetching topic:', error);
+    res.status(500).json({ message: 'Server error while fetching topic' });
   }
-};
+});

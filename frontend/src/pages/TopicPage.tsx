@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import VoteModal from '@/components/VoteModal';
 import { BiUpvote, BiSolidUpvote, BiDownvote, BiSolidDownvote } from "react-icons/bi";
+import { BsBookmarks, BsBookmarksFill } from "react-icons/bs"; // Import Bookmark Icons
 
 interface Topic {
   _id: string;
@@ -24,10 +25,11 @@ interface ResourceData {
   classification: string;
   skillLevel: string;
   comprehensiveness: number;
-  upvotes?: number; // Existing
-  downvotes?: number; // Existing
-  hasUpvoted?: boolean; // **Added to track user interaction**
-  hasDownvoted?: boolean; // **Added to track user interaction**
+  upvotes?: number;
+  downvotes?: number;
+  hasUpvoted?: boolean;
+  hasDownvoted?: boolean;
+  isBookmarked?: boolean; // Ensure isBookmarked is present
 }
 
 interface User {
@@ -48,18 +50,19 @@ export const TopicPage: React.FC = () => {
 
   const { toast } = useToast();
 
-  // Update API URLs to match the voteRoutes mounting
+  // Define API Base URLs
   const VOTE_BASE_URL = 'http://localhost:5001/vote';
+  const USER_BASE_URL = 'http://localhost:5001/user';
 
   useEffect(() => {
     const fetchTopic = async () => {
       try {
-        // **Ensure the request includes the Authorization header**
+        // Ensure the request includes the Authorization header
         const response = await axios.get(`http://localhost:5001/topics/${slug}`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         setTopic(response.data);
-        setResources(response.data.resources); // Resources now include upvotes, downvotes, hasUpvoted, hasDownvoted
+        setResources(response.data.resources); // Resources include upvotes, downvotes, hasUpvoted, hasDownvoted, isBookmarked
         setLoading(false);
       } catch (err: any) {
         setError('Failed to fetch topic');
@@ -84,7 +87,7 @@ export const TopicPage: React.FC = () => {
       const response = await axios.post(
         'http://localhost:5001/resources/generate',
         { topicId: topic._id },
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } } // Adjust as needed
+        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
       setResources(response.data);
       toast({
@@ -136,6 +139,50 @@ export const TopicPage: React.FC = () => {
     }
   };
 
+  // Handle Bookmark Toggle
+  const handleBookmarkToggle = async (resourceId: string, isBookmarked: boolean) => {
+    try {
+      if (isBookmarked) {
+        // **Unbookmark the resource**
+        await axios.post(
+          `${USER_BASE_URL}/unbookmark`,
+          { resourceId },
+          { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+        );
+        // Update the resource's isBookmarked status
+        setResources(prev =>
+          prev.map(r => r._id === resourceId ? { ...r, isBookmarked: false } : r)
+        );
+        toast({
+          title: 'Unbookmarked',
+          description: 'Resource has been removed from your bookmarks.',
+        });
+      } else {
+        // **Bookmark the resource**
+        await axios.post(
+          `${USER_BASE_URL}/bookmark`,
+          { resourceId },
+          { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+        );
+        // Update the resource's isBookmarked status
+        setResources(prev =>
+          prev.map(r => r._id === resourceId ? { ...r, isBookmarked: true } : r)
+        );
+        toast({
+          title: 'Bookmarked',
+          description: 'Resource has been added to your bookmarks.',
+        });
+      }
+    } catch (err: any) {
+      console.error('Error toggling bookmark:', err);
+      toast({
+        title: 'Error',
+        description: err.response?.data?.message || 'Failed to toggle bookmark.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -173,7 +220,7 @@ export const TopicPage: React.FC = () => {
       <div className="mt-8 grid grid-cols-1 gap-4">
         {resources.map((resource) => (
           <Card key={resource._id}>
-            <CardHeader className="flex justify-between">
+            <CardHeader className="flex justify-between items-start">
               <div>
                 <h2 className="text-xl font-semibold">
                   <a href={resource.url} target="_blank" rel="noopener noreferrer">
@@ -186,7 +233,14 @@ export const TopicPage: React.FC = () => {
                   </a>
                 </p>
               </div>
-              {/* Future: User profile link */}
+              {/* Bookmark Icon */}
+              <Button
+                variant="ghost"
+                onClick={() => handleBookmarkToggle(resource._id, resource.isBookmarked || false)}
+                aria-label={resource.isBookmarked ? 'Unbookmark' : 'Bookmark'}
+              >
+                {resource.isBookmarked ? <BsBookmarksFill size={24} /> : <BsBookmarks size={24} />}
+              </Button>
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2 mb-4">
@@ -205,7 +259,7 @@ export const TopicPage: React.FC = () => {
               <p className="text-sm text-muted-foreground mt-2">{resource.comprehensiveness}% Topic Coverage</p>
               <div className="flex justify-between items-center mt-4">
                 <div className="flex space-x-4">
-                  {/* **Upvote Button with Icons** */}
+                  {/* Upvote Button with Icons */}
                   <Button
                     variant="ghost"
                     onClick={async () => {
@@ -234,11 +288,11 @@ export const TopicPage: React.FC = () => {
                       }
                     }}
                   >
-                    {/* **Use solid icon if upvoted, else outline icon** */}
+                    {/* Use solid icon if upvoted, else outline icon */}
                     {resource.hasUpvoted ? <BiSolidUpvote /> : <BiUpvote />}
                   </Button>
 
-                  {/* **Downvote Button with Icons** */}
+                  {/* Downvote Button with Icons */}
                   <Button
                     variant="ghost"
                     onClick={async () => {
@@ -267,11 +321,11 @@ export const TopicPage: React.FC = () => {
                       }
                     }}
                   >
-                    {/* **Use solid icon if downvoted, else outline icon** */}
+                    {/* Use solid icon if downvoted, else outline icon */}
                     {resource.hasDownvoted ? <BiSolidDownvote /> : <BiDownvote />}
                   </Button>
                 </div>
-                {/* will be adding other elements here */}
+                {/* Other elements can be added here */}
               </div>
 
               {/* Upvoters Modal */}

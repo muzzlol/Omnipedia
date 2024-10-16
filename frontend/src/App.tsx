@@ -7,6 +7,7 @@ import { Home } from '@/pages/Home';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { TopicPage } from '@/pages/TopicPage';
+import ProfilePage from '@/pages/ProfilePage'; // Import ProfilePage
 import { Toaster } from '@/components/ui/toaster'; 
 
 const App: React.FC = () => {
@@ -21,8 +22,11 @@ const App: React.FC = () => {
               <Route path="/login" element={<LoginForm />} />
               <Route path="/register" element={<RegisterForm />} />
               <Route path="/topics/:slug" element={<TopicPage />} /> {/* Updated to use :slug */}
+              
+              {/* Protected Routes */}
               <Route element={<ProtectedRoute />}>
-                <Route path="/profile" element={<div>Profile Page</div>} />
+                <Route path="/profile" element={<ProfilePage />} /> {/* Personal Profile */}
+                <Route path="/profile/:userId" element={<ProfilePage />} /> {/* Public Profile */}
               </Route>
             </Routes>
           </main>

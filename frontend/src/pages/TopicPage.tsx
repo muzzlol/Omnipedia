@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { Card, CardHeader, CardContent } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
-import { useToast } from '@/hooks/use-toast'
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
 import VoteModal from '@/components/VoteModal';
+import { BiUpvote, BiSolidUpvote, BiDownvote, BiSolidDownvote } from "react-icons/bi";
 
 interface Topic {
   _id: string;
@@ -23,8 +24,10 @@ interface ResourceData {
   classification: string;
   skillLevel: string;
   comprehensiveness: number;
-  upvotes?: number; // Added upvotes
-  downvotes?: number; // Added downvotes
+  upvotes?: number; // Existing
+  downvotes?: number; // Existing
+  hasUpvoted?: boolean; // **Added to track user interaction**
+  hasDownvoted?: boolean; // **Added to track user interaction**
 }
 
 interface User {
@@ -43,7 +46,7 @@ export const TopicPage: React.FC = () => {
   const [upvoters, setUpvoters] = useState<User[]>([]);
   const [downvoters, setDownvoters] = useState<User[]>([]);
 
-  const { toast } = useToast()
+  const { toast } = useToast();
 
   // Update API URLs to match the voteRoutes mounting
   const VOTE_BASE_URL = 'http://localhost:5001/vote';
@@ -51,9 +54,12 @@ export const TopicPage: React.FC = () => {
   useEffect(() => {
     const fetchTopic = async () => {
       try {
-        const response = await axios.get(`http://localhost:5001/topics/${slug}`);
+        // **Ensure the request includes the Authorization header**
+        const response = await axios.get(`http://localhost:5001/topics/${slug}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
         setTopic(response.data);
-        setResources(response.data.resources); // Resources now include upvotes and downvotes
+        setResources(response.data.resources); // Resources now include upvotes, downvotes, hasUpvoted, hasDownvoted
         setLoading(false);
       } catch (err: any) {
         setError('Failed to fetch topic');
@@ -199,7 +205,7 @@ export const TopicPage: React.FC = () => {
               <p className="text-sm text-muted-foreground mt-2">{resource.comprehensiveness}% Topic Coverage</p>
               <div className="flex justify-between items-center mt-4">
                 <div className="flex space-x-4">
-                  {/* Upvote Button */}
+                  {/* **Upvote Button with Icons** */}
                   <Button
                     variant="ghost"
                     onClick={async () => {
@@ -209,9 +215,15 @@ export const TopicPage: React.FC = () => {
                           {},
                           { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
                         );
-                        // Update resource with new upvote/downvote counts
+                        // Update resource with new upvote/downvote counts and vote status
                         setResources(prev =>
-                          prev.map(r => r._id === resource._id ? { ...r, upvotes: response.data.upvotes, downvotes: response.data.downvotes } : r)
+                          prev.map(r => r._id === resource._id ? { 
+                            ...r, 
+                            upvotes: response.data.upvotes, 
+                            downvotes: response.data.downvotes, 
+                            hasUpvoted: true, 
+                            hasDownvoted: false 
+                          } : r)
                         );
                       } catch (err: any) {
                         toast({
@@ -222,10 +234,11 @@ export const TopicPage: React.FC = () => {
                       }
                     }}
                   >
-                    👍 {resource.upvotes || 0}
+                    {/* **Use solid icon if upvoted, else outline icon** */}
+                    {resource.hasUpvoted ? <BiSolidUpvote /> : <BiUpvote />}
                   </Button>
 
-                  {/* Downvote Button */}
+                  {/* **Downvote Button with Icons** */}
                   <Button
                     variant="ghost"
                     onClick={async () => {
@@ -235,9 +248,15 @@ export const TopicPage: React.FC = () => {
                           {},
                           { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
                         );
-                        // Update resource with new upvote/downvote counts
+                        // Update resource with new upvote/downvote counts and vote status
                         setResources(prev =>
-                          prev.map(r => r._id === resource._id ? { ...r, upvotes: response.data.upvotes, downvotes: response.data.downvotes } : r)
+                          prev.map(r => r._id === resource._id ? { 
+                            ...r, 
+                            upvotes: response.data.upvotes, 
+                            downvotes: response.data.downvotes, 
+                            hasUpvoted: false, 
+                            hasDownvoted: true 
+                          } : r)
                         );
                       } catch (err: any) {
                         toast({
@@ -248,10 +267,11 @@ export const TopicPage: React.FC = () => {
                       }
                     }}
                   >
-                    👎 {resource.downvotes || 0}
+                    {/* **Use solid icon if downvoted, else outline icon** */}
+                    {resource.hasDownvoted ? <BiSolidDownvote /> : <BiDownvote />}
                   </Button>
                 </div>
-                {/* Optionally, add other elements here */}
+                {/* will be adding other elements here */}
               </div>
 
               {/* Upvoters Modal */}

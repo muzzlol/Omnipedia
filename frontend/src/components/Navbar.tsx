@@ -7,7 +7,7 @@ import {
   SheetContent,
   SheetTrigger,
 } from "./ui/sheet";
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from "@/contexts/AuthContext";
 
 export const Navbar: React.FC = () => {
   const { isAuthenticated, logout } = useAuth();

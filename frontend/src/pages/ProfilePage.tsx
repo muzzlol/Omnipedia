@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookmarkIcon, Edit3Icon } from "lucide-react"; // Changed UserIcon to Edit3Icon
+import { Edit3Icon } from "lucide-react"; // Changed UserIcon to Edit3Icon
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Dialog,
@@ -15,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
+import ResourceCard from "@/components/ResourceCard";
 
 export default function ProfilePage() {
   const { userId } = useParams<{ userId: string }>();
@@ -235,22 +235,16 @@ export default function ProfilePage() {
         </TabsList>
         <TabsContent value="saved" className="space-y-4">
           <div className="flex flex-col items-center gap-6">
-            {profile.bookmarkedResources.length > 0 ? (
-              profile.bookmarkedResources.map((resource: any, i: number) => (
-                <Card key={i} className="group overflow-hidden w-full max-w-md">
-                  <CardContent className="p-0 aspect-video relative">
-                    <img
-                      src={resource.url || `/placeholder.svg?height=360&width=640&text=Resource ${i + 1}`}
-                      alt={`Saved resource ${i + 1}`}
-                      className="w-full h-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                      <Button variant="ghost" size="icon" className="text-white">
-                        <BookmarkIcon className="h-6 w-6" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+            {profile.bookmarkedResources && profile.bookmarkedResources.length > 0 ? (
+              profile.bookmarkedResources.map((resource: any) => (
+                <ResourceCard
+                  key={resource._id}
+                  topicName={resource.topic?.name || 'Unknown Topic'} 
+                  url={resource.url}
+                  classification={resource.classification}
+                  comprehensiveness={resource.comprehensiveness}
+                  skillLevel={resource.skillLevel}
+                />
               ))
             ) : (
               <div className="text-center text-muted-foreground">
@@ -259,24 +253,18 @@ export default function ProfilePage() {
             )}
           </div>
         </TabsContent>
-        <TabsContent value="created">
+        <TabsContent value="created" className="space-y-4">
           <div className="flex flex-col items-center gap-6">
-            {profile.resources.length > 0 ? (
-              profile.resources.map((resource: any, i: number) => (
-                <Card key={i} className="group overflow-hidden w-full max-w-md">
-                  <CardContent className="p-0 aspect-video relative">
-                    <img
-                      src={resource.url || `/placeholder.svg?height=360&width=640&text=Resource ${i + 1}`}
-                      alt={`Created resource ${i + 1}`}
-                      className="w-full h-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                      <Button variant="ghost" size="icon" className="text-white">
-                        <BookmarkIcon className="h-6 w-6" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+            {profile.resources && profile.resources.length > 0 ? (
+              profile.resources.map((resource: any) => (
+                <ResourceCard
+                  key={resource._id}
+                  topicName={resource.topic?.name || 'Unknown Topic'}
+                  url={resource.url}
+                  classification={resource.classification}
+                  comprehensiveness={resource.comprehensiveness}
+                  skillLevel={resource.skillLevel}
+                />
               ))
             ) : (
               <div className="text-center text-muted-foreground">

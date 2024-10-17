@@ -8,14 +8,9 @@ import userRoutes from './routes/userRoutes.js';
 import resourceRoutes from './routes/resourceRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
 import searchRoutes from './routes/searchRoutes.js';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import voteRoutes from './routes/voteRoutes.js';
 
 dotenv.config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -24,9 +19,6 @@ app.use(cors({
   origin: 'http://localhost:5173', // Konnect to frontend
   credentials: true,
 }));
-
-// Serve static files from the 'public' directory
-app.use('/images', express.static(path.join(__dirname, '..', 'public/images')));
 
 // Middleware to parse JSON bodies in requests
 app.use(express.json());

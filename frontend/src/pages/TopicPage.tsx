@@ -9,7 +9,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import VoteModal from '@/components/VoteModal';
 import { BiUpvote, BiSolidUpvote, BiDownvote, BiSolidDownvote } from "react-icons/bi";
-import { BsBookmarks, BsBookmarksFill } from "react-icons/bs"; // Import Bookmark Icons
+import { BsBookmarks, BsBookmarksFill } from "react-icons/bs";
+import AddResource from '@/components/AddResource'; 
 
 interface Topic {
   _id: string;
@@ -29,7 +30,7 @@ interface ResourceData {
   downvotes?: number;
   hasUpvoted?: boolean;
   hasDownvoted?: boolean;
-  isBookmarked?: boolean; // Ensure isBookmarked is present
+  isBookmarked?: boolean;
 }
 
 interface User {
@@ -183,6 +184,15 @@ export const TopicPage: React.FC = () => {
     }
   };
 
+  // Handler to add a new resource to the state
+  const handleAddResource = (newResource: ResourceData) => {
+    setResources(prev => [...prev, newResource]);
+    toast({
+      title: 'Resource Added',
+      description: 'Your resource has been added successfully.',
+    });
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -215,6 +225,9 @@ export const TopicPage: React.FC = () => {
           <Skeleton className="h-4 w-full mb-2" />
         </div>
       )}
+
+      {/* Integrate the AddResource component */}
+      {topic && <AddResource topicId={topic._id} onAddResource={handleAddResource} />}
 
       {/* Resources Rendering */}
       <div className="mt-8 grid grid-cols-1 gap-4">

@@ -42,7 +42,18 @@ export const addResource = asyncHandler(async (req: AuthRequest, res: Response) 
     // Add resource to the user's resources array
     await User.findByIdAndUpdate(req.user?._id, { $push: { resources: resource._id } });
 
-    res.status(201).json(resource);
+    // Fetch the Vote document to get upvote/downvote counts
+    const voteDoc = await Vote.findOne({ resource: resource._id });
+
+    // Respond with the resource data including vote counts and flags
+    res.status(201).json({
+      ...resource.toObject(),
+      upvotes: voteDoc?.upvoters.length || 0,
+      downvotes: voteDoc?.downvoters.length || 0,
+      hasUpvoted: false,       // Initialize as not upvoted by the creator
+      hasDownvoted: false,     // Initialize as not downvoted by the creator
+      isBookmarked: false,     // Initialize as not bookmarked by the creator
+    });
   } catch (error) {
     console.error('Error adding resource:', error);
     res.status(500).json({ message: 'Server error while adding resource' });

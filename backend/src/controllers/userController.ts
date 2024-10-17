@@ -1,8 +1,8 @@
 import { Response } from 'express';
-import User, { IUser } from '../models/User';
+import User from '../models/User';
 import asyncHandler from '../utils/asyncHandler';
 import { AuthRequest } from '../types/AuthRequest';
-import bcrypt from 'bcrypt';
+
 
 // Get any user's profile by ID
 export const getUserProfile = asyncHandler(async (req: AuthRequest, res: Response) => {
@@ -10,10 +10,17 @@ export const getUserProfile = asyncHandler(async (req: AuthRequest, res: Respons
 
   try {
     const user = await User.findById(userId)
-      .populate('bookmarkedResources')
+      .populate({
+        path: 'bookmarkedResources',
+        populate: { path: 'topic', select: 'name' }, // Populate topic with name
+      })
       .populate('followedUsers', 'username email')
       .populate('followers', 'username email')
-      .populate('resources', 'type url classification comprehensiveness skillLevel topic creator createdAt');
+      .populate({
+        path: 'resources',
+        populate: { path: 'topic', select: 'name' }, // Populate topic with name
+        select: 'type url classification comprehensiveness skillLevel topic creator createdAt',
+      });
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -196,16 +203,31 @@ export const unfollowUser = asyncHandler(async (req: AuthRequest, res: Response)
 export const getProfile = asyncHandler(async (req: AuthRequest, res: Response) => {
   try {
     const user = await User.findById(req.user?._id)
-      .populate('bookmarkedResources')
+      .populate({
+        path: 'bookmarkedResources',
+        populate: { path: 'topic', select: 'name' }, // Populate topic with name
+      })
       .populate('followedUsers', 'username email')
       .populate('followers', 'username email')
-      .populate('resources', 'type url classification comprehensiveness skillLevel topic creator createdAt');
-    
+      .populate({
+        path: 'resources',
+        populate: { path: 'topic', select: 'name' }, // Populate topic with name
+        select: 'type url classification comprehensiveness skillLevel topic creator createdAt',
+      });
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    res.status(200).json(user);
+    // Modified response
+    res.status(200).json({
+      ...user.toObject(),
+      resources: user.resources.map(resource => ({
+        ...resource,
+        _id: resource._id, // Ensure _id is included
+        // ... other fields ...
+      })),
+    });
   } catch (error) {
     console.error('Error fetching profile:', error);
     res.status(500).json({ message: 'Server error while fetching profile' });

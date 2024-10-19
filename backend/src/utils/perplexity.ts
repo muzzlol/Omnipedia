@@ -1,10 +1,5 @@
 import axios from 'axios';
 
-// // Ensure that the environment variables are loaded
-// if (!process.env.PPLX_API_KEY) {
-//   throw new Error('PPLX_API_KEY is not defined in the environment variables.');
-// }
-
 interface GeneratedDescription {
   description: string;
 }
@@ -19,13 +14,16 @@ interface PerplexityResponse {
 
 export async function generateDescription(topicName: string): Promise<GeneratedDescription> {
   try {
+    // Sanitize the topicName by removing any text within square brackets, including the brackets
+    const sanitizedTopicName = topicName.replace(/\[.*?\]/g, '').trim();
+
     const response = await axios.post<PerplexityResponse>(
       'https://api.perplexity.ai/chat/completions',
       {
         model: "llama-3.1-sonar-small-128k-online",
         messages: [
           { role: "system", content: "Be precise and concise." },
-          { role: "user", content: `Generate a very concise description for the topic: ${topicName}` }
+          { role: "user", content: `Generate a very concise description for the topic: ${sanitizedTopicName}` }
         ],
         temperature: 0.2,
         top_p: 0.9,
@@ -63,40 +61,50 @@ export interface ResourceData {
 
 // Add this new function to generate resources
 export async function generateResources(topicName: string): Promise<ResourceData[]> {
+  // Sanitize the topicName by removing any text within square brackets, including the brackets
+  const sanitizedTopicName = topicName.replace(/\[.*?\]/g, '').trim();
   try {
     const response = await axios.post<PerplexityResponse>(
       'https://api.perplexity.ai/chat/completions',
       {
         model: "llama-3.1-sonar-huge-128k-online",
         messages: [
-          { role: "system", content: `
-You are an assistant that generates structured resource data for educational topics. 
-When provided with a topic name, create a list of 5 resources in JSON format adhering to the following schema:
+          {
+            role: "system",
+            content: `
+You are an assistant specialized in curating and generating lists of top-tier educational resources for any given topic. Your objective is to provide the most relevant, high-quality resources by assessing various platforms and sources, including but not limited to Reddit, Google, specialized forums, and educational websites.
 
-{
-  "type": "string",          // Type of the resource (e.g., "video", "book", "article", "pdf")
-  "url": "string",           // Direct URL to the resource
-  "classification": "string",// "free" or "paid"
-  "comprehensiveness": number,// Integer between 1 and 100 indicating coverage depth
-  "skillLevel": "string"     // "beginner", "intermediary", or "advanced"
-}
+**When provided with a topic name, perform the following:**
+1. **Assess Resource Landscape:** Analyze the breadth and depth of available resources related to the topic across multiple platforms.
+2. **Prioritize Quality and Popularity:** Select resources based on their popularity, user feedback, and comprehensiveness.
+3. **Adapt Resource Quantity and Types:** Determine the optimal number and variety of resources (e.g., videos, articles, books) based on the topic's complexity and available materials.
+4. **Categorize Appropriately:** Assign accurate classifications for each resource, including type, URL, access classification (free/paid), comprehensiveness score (1-100), and skill level (beginner/intermediary/advanced).
 
-**Guidelines:**
-- Your output should be a valid JSON array and nothing else.
+**Output Requirements:**
+- Provide only a JSON array containing each resource with the following schema:
+  {
+    "type": "string",
+    "url": "string",
+    "classification": "free" | "paid",
+    "comprehensiveness": number,
+    "skillLevel": "beginner" | "intermediary" | "advanced"
+  }
 - Ensure all fields are present and correctly formatted.
-- The \`comprehensiveness\` value should reflect the depth of the resource:
-  - Comprehensive resources like books should have values in the 80-100 range.
-  - Shorter resources like videos should have values below 50.
-- The \`skillLevel\` should correspond to the complexity of the resource.
-- Provide a diverse mix of resource types.
-- Do not include \`topic\`, \`creator\`, or \`createdAt\` fields; these will be handled separately.
+- Do not include any additional formatting such as code fences (e.g., \`\`\`json).
+- Do not include additional fields beyond those specified.
 - Ensure URLs are valid and lead directly to the resource.
-` },
-          { role: "user", content: `Provide resource details for the topic: ${topicName}. Return the data as a JSON array following the schema outlined in the system message.` }
+- Favor quality over quantity, ensuring that each listed resource is a top recommendation.
+- Provide a diverse mix of resource types as appropriate for the topic's depth and popularity.
+`
+          },
+          {
+            role: "user",
+            content: `Provide resource details for the topic: ${sanitizedTopicName}. Return the data as a JSON array following the schema outlined in the system message. Do not include any additional formatting or annotations.`
+          }
         ],
-        temperature: 0.3,
-        top_p: 0.8,
-        max_tokens: 500,
+        temperature: 0.2,
+        top_p: 0.7,
+        max_tokens: 700,
         stream: false
       },
       {
@@ -108,13 +116,10 @@ When provided with a topic name, create a list of 5 resources in JSON format adh
     );
 
     if (response.data.choices && response.data.choices.length > 0) {
-      const resourcesContent = response.data.choices[0].message.content;
+      const resourcesContent = response.data.choices[0].message.content.trim();
 
-      // **Edit:** Remove code fences if present
-      const jsonMatch = resourcesContent.match(/```json\s*([\s\S]+?)\s*```/);
-      const cleanJson = jsonMatch ? jsonMatch[1] : resourcesContent;
-
-      return JSON.parse(cleanJson.trim());
+      // Since the response should now be pure JSON, parse it directly
+      return JSON.parse(resourcesContent);
     } else {
       throw new Error('Unexpected response format from Perplexity API');
     }
@@ -123,6 +128,8 @@ When provided with a topic name, create a list of 5 resources in JSON format adh
     throw new Error('Failed to generate resources');
   }
 }
+
+
 
 
 

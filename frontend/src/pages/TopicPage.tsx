@@ -11,6 +11,7 @@ import VoteModal from '@/components/VoteModal';
 import { BiUpvote, BiSolidUpvote, BiDownvote, BiSolidDownvote } from "react-icons/bi";
 import { BsBookmarks, BsBookmarksFill } from "react-icons/bs";
 import AddResource from '@/components/AddResource'; 
+import ReactMarkdown from 'react-markdown'; // Import ReactMarkdown
 
 interface Topic {
   _id: string;
@@ -209,14 +210,27 @@ export const TopicPage: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-4">{topic.name}</h1>
-      <p className="text-lg mb-6">{topic.description}</p>
       
-      {/* Generate Resources Button */}
-      {resources.length === 0 && (
-        <Button onClick={handleGenerateResources} disabled={generating}>
-          {generating ? 'Generating...' : 'Generate Resources'}
-        </Button>
-      )}
+      {/* Render description as markdown */}
+      <ReactMarkdown className="text-lg mb-6">
+        {topic.description}
+      </ReactMarkdown>
+      
+      {/* Button container */}
+      <div className="flex justify-between items-center mb-6">
+        {/* Generate Resources Button */}
+        {resources.length === 0 && (
+          <Button onClick={handleGenerateResources} disabled={generating}>
+            {generating ? 'Generating...' : 'Generate Resources'}
+          </Button>
+        )}
+        
+        {/* Spacer */}
+        <div className="flex-grow"></div>
+        
+        {/* Add Resource Button */}
+        {topic && <AddResource topicId={topic._id} onAddResource={handleAddResource} />}
+      </div>
 
       {/* Loading Indicator for Resource Generation */}
       {generating && (
@@ -225,9 +239,6 @@ export const TopicPage: React.FC = () => {
           <Skeleton className="h-4 w-full mb-2" />
         </div>
       )}
-
-      {/* Integrate the AddResource component */}
-      {topic && <AddResource topicId={topic._id} onAddResource={handleAddResource} />}
 
       {/* Resources Rendering */}
       <div className="mt-8 grid grid-cols-1 gap-4">

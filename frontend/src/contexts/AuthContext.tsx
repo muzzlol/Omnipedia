@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import axios from 'axios';
 
 interface User {
   _id: string;
@@ -27,6 +28,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (storedToken) {
       setIsAuthenticated(true);
       setToken(storedToken);
+      // Fetch user data
+      axios.get('http://localhost:5001/users/profile', {
+        headers: {
+          Authorization: `Bearer ${storedToken}`,
+        },
+      })
+      .then(response => {
+        setCurrentUser(response.data);
+      })
+      .catch(error => {
+        console.error('Error fetching user data:', error);
+        logout();
+      });
     }
   }, []);
 

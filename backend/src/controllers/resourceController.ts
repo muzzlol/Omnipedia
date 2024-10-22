@@ -30,6 +30,13 @@ export const addResource = asyncHandler(async (req: AuthRequest, res: Response) 
 
     await resource.save();
 
+    // Add manually made resources to Topic's resources array
+    await Topic.findByIdAndUpdate(
+      topicId,
+      { $push: { resources: resource._id } },
+      { new: true }
+    );
+
     // Initialize Vote document for the new resource
     const vote = new Vote({
       resource: resource._id,

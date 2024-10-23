@@ -51,6 +51,7 @@ export default function ProfilePage() {
             'Authorization': `Bearer ${token}`,
           },
         });
+        console.log('Profile data received:', res.data);
         setProfile(res.data);
         if (!isOwnProfile && currentUser) {
           setIsFollowing(res.data.followers.includes(currentUser._id));
@@ -242,16 +243,19 @@ export default function ProfilePage() {
         <TabsContent value="created" className="space-y-4">
           <div className="flex flex-col items-center gap-6">
             {profile.resources && profile.resources.length > 0 ? (
-              profile.resources.map((resource: any) => (
-                <ResourceCard
-                  key={resource._id}
-                  topicName={resource.topic?.name || 'Unknown Topic'}
-                  url={resource.url}
-                  classification={resource.classification}
-                  comprehensiveness={resource.comprehensiveness}
-                  skillLevel={resource.skillLevel}
-                />
-              ))
+              profile.resources.map((resource: any) => {
+                console.log('Resource being rendered:', resource);
+                return (
+                  <ResourceCard
+                    key={resource._id}
+                    topicName={resource.topic?.name || 'Unknown Topic'}
+                    url={resource.url}
+                    classification={resource.classification}
+                    comprehensiveness={resource.comprehensiveness}
+                    skillLevel={resource.skillLevel}
+                  />
+                );
+              })
             ) : (
               <div className="text-center text-muted-foreground">
                 No created resources yet.

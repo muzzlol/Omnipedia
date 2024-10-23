@@ -1,11 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { Search } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { Search } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import axios from 'axios';
-import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'; // Import Dialog components
+import axios from "axios";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"; // Import Dialog components
 
 interface Topic {
   _id: string;
@@ -15,13 +23,13 @@ interface Topic {
 }
 
 export const SearchBar: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<Topic[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [noResults, setNoResults] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false); // Dialog state
-  const [newTopicName, setNewTopicName] = useState(''); // New topic name state
+  const [newTopicName, setNewTopicName] = useState(""); // New topic name state
 
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -30,19 +38,23 @@ export const SearchBar: React.FC = () => {
     const fetchSuggestions = async () => {
       if (searchTerm.length > 2) {
         try {
-          const response = await axios.get(`http://localhost:5001/search/topics?query=${encodeURIComponent(searchTerm)}`);
-          
+          const response = await axios.get(
+            `http://localhost:5001/search/topics?query=${encodeURIComponent(
+              searchTerm
+            )}`
+          );
+
           if (response.data.topics) {
             setSuggestions(response.data.topics);
             setNoResults(response.data.topics.length === 0);
             setError(null);
           } else {
-            setError('Unexpected server response.');
+            setError("Unexpected server response.");
             setSuggestions([]);
             setNoResults(false);
           }
         } catch (error: any) {
-          setError('Unable to retrieve suggestions. Please try again later.');
+          setError("Unable to retrieve suggestions. Please try again later.");
           setSuggestions([]);
           setNoResults(false);
         }
@@ -59,20 +71,22 @@ export const SearchBar: React.FC = () => {
   }, [searchTerm]);
 
   const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       const trimmedTerm = searchTerm.trim();
-      if (trimmedTerm === '') {
+      if (trimmedTerm === "") {
         toast({
           title: "Empty Search",
           description: "Please enter a topic name to search.",
-          variant: 'destructive',
+          variant: "destructive",
         });
         return;
       }
 
       try {
-        const response = await axios.get(`http://localhost:5001/topics/${encodeURIComponent(trimmedTerm)}`);
+        const response = await axios.get(
+          `http://localhost:5001/topics/${encodeURIComponent(trimmedTerm)}`
+        );
         if (response.status === 200) {
           navigate(`/topics/${response.data.slug}`); // Navigate using slug
         }
@@ -81,13 +95,14 @@ export const SearchBar: React.FC = () => {
           toast({
             title: "Topic Not Found",
             description: `The topic "${trimmedTerm}" does not exist.`,
-            variant: 'destructive',
+            variant: "destructive",
           });
         } else {
           toast({
             title: "Search Error",
-            description: "An unexpected error occurred. Please try again later.",
-            variant: 'destructive',
+            description:
+              "An unexpected error occurred. Please try again later.",
+            variant: "destructive",
           });
         }
       }
@@ -99,19 +114,21 @@ export const SearchBar: React.FC = () => {
     const trimmedName = newTopicName.trim();
     console.log(`Attempting to create topic with name: "${trimmedName}"`);
 
-    if (trimmedName === '') {
+    if (trimmedName === "") {
       toast({
         title: "Invalid Input",
         description: "Topic name cannot be empty.",
-        variant: 'destructive',
+        variant: "destructive",
       });
-      console.log('Creation aborted: Topic name is empty.');
+      console.log("Creation aborted: Topic name is empty.");
       return;
     }
 
     try {
       // Await the POST request to ensure topic is created before redirecting
-      const response = await axios.post('http://localhost:5001/topics', { name: trimmedName });
+      const response = await axios.post("http://localhost:5001/topics", {
+        name: trimmedName,
+      });
       console.log(`POST response status: ${response.status}`);
       if (response.status === 201) {
         const { slug } = response.data;
@@ -119,25 +136,26 @@ export const SearchBar: React.FC = () => {
         toast({
           title: "Topic Created",
           description: `Topic "${trimmedName}" has been created successfully.`,
-          variant: 'default',
+          variant: "default",
         });
         setIsDialogOpen(false); // Close the dialog
-        setNewTopicName(''); // Reset the input
+        setNewTopicName(""); // Reset the input
         navigate(`/topics/${slug}`); // Navigate to the new topic page
       }
     } catch (error: any) {
-      console.error('Error during topic creation:', error);
+      console.error("Error during topic creation:", error);
       if (error.response && error.response.status === 400) {
         toast({
           title: "Creation Failed",
           description: error.response.data.message || "Topic already exists.",
-          variant: 'destructive',
+          variant: "destructive",
         });
       } else {
         toast({
           title: "Server Error",
-          description: "An error occurred while creating the topic. Please try again later.",
-          variant: 'destructive',
+          description:
+            "An error occurred while creating the topic. Please try again later.",
+          variant: "destructive",
         });
       }
     }
@@ -177,10 +195,10 @@ export const SearchBar: React.FC = () => {
                 </div>
               ))
             )}
-            <div className='flex justify-center p-2 border-t'>
+            <div className="flex justify-center p-2 border-t">
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className='w-full'>Create Topic</Button>
+                  <Button className="w-full">Create Topic</Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
@@ -198,7 +216,12 @@ export const SearchBar: React.FC = () => {
                   />
                   <DialogFooter>
                     <Button onClick={handleCreateTopic}>Create</Button>
-                    <Button variant="ghost" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => setIsDialogOpen(false)}
+                    >
+                      Cancel
+                    </Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
@@ -227,7 +250,9 @@ export const SearchBar: React.FC = () => {
           />
           <DialogFooter>
             <Button onClick={handleCreateTopic}>Create</Button>
-            <Button variant="ghost" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+            <Button variant="ghost" onClick={() => setIsDialogOpen(false)}>
+              Cancel
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

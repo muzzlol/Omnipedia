@@ -1,12 +1,17 @@
-import express from 'express';
-import { createTopic, getTopics, getTopicBySlug, updateTopic } from '../controllers/topicController';
-import { protect } from '../middleware/authMiddleware'; 
+import express from "express";
+import {
+  createTopic,
+  getTopics,
+  getTopicBySlug,
+  updateTopic,
+} from "../controllers/topicController";
+import { protect } from "../middleware/authMiddleware";
 
 const router = express.Router();
 
-router.post('/', createTopic);
-router.get('/', getTopics);
-router.get('/:slug', protect, getTopicBySlug); 
-router.put('/:slug', updateTopic);
+router.post("/", protect, createTopic);
+router.get("/", getTopics);
+router.get("/:slug", getTopicBySlug);
+router.put("/:slug", updateTopic);
 
 export default router;

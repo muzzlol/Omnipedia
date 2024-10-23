@@ -5,6 +5,7 @@ import asyncHandler from "../utils/asyncHandler";
 import { AuthRequest } from "../types/AuthRequest";
 import User from "../models/User";
 import { moderate } from "../utils/moderation";
+import { redisClient as client } from "../server";
 
 export const createTopic = async (req: Request, res: Response) => {
   const { name } = req.body;
@@ -68,8 +69,13 @@ export const updateTopic = async (req: Request, res: Response) => {
 export const getTopicBySlug = asyncHandler(
   async (req: AuthRequest, res: Response) => {
     const { slug } = req.params;
-
     try {
+      const cachedOutput = await client.get(`topic/${slug}`);
+      if (cachedOutput) {
+        console.log("Cache hit");
+        return res.status(200).json(JSON.parse(cachedOutput));
+      }
+
       const topic = await Topic.findOne({ slug }).populate("resources");
 
       if (!topic) {
@@ -97,7 +103,7 @@ export const getTopicBySlug = asyncHandler(
               downvoters: [],
             });
           }
-
+          console.log("hello 124321");
           return {
             ...resource.toObject(),
             upvotes: vote.upvoters.length,
@@ -109,7 +115,19 @@ export const getTopicBySlug = asyncHandler(
         })
       );
 
-      res.status(200).json({
+      // Set response in Redis if cache miss
+      await client.set(
+        `topic/${slug}`,
+        JSON.stringify({
+          ...topic.toObject(),
+          resources: resourcesWithVotes,
+        }),
+        "EX",
+        600 //ten minutes
+      );
+      console.log("Cache set");
+
+      return res.status(200).json({
         ...topic.toObject(),
         resources: resourcesWithVotes,
       });

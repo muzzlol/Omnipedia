@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Edit3Icon } from "lucide-react"; // Changed UserIcon to Edit3Icon
+import { Edit3Icon } from "lucide-react"; 
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Dialog,
@@ -15,13 +15,26 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import ResourceCard from "@/components/ResourceCard";
+import axios from "axios";
+
+const API_BASE_URL = 'http://localhost:5001';
+
+interface Profile {
+  _id: string;
+  username: string;
+  avatarUrl: string;
+  followers: string[];
+  followedUsers: string[];
+  bookmarkedResources: any[];
+  resources: any[];
+}
 
 export default function ProfilePage() {
   const { userId } = useParams<{ userId: string }>();
-  const { isAuthenticated, token, currentUser } = useAuth(); // Removed login and logout if not used
+  const { isAuthenticated, token, currentUser } = useAuth();
   const isOwnProfile = !userId || userId === currentUser?._id;
 
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newAvatarUrl, setNewAvatarUrl] = useState("");
@@ -29,41 +42,24 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const API_BASE_URL = 'http://localhost:5001'; // Define the backend API base URL
         const url = isOwnProfile 
-          ? `${API_BASE_URL}/users/profile`  // **Updated endpoint for own profile**
-          : `${API_BASE_URL}/users/${userId}`; // Corrected endpoint for public profiles
-        console.log("Fetching URL:", url); // Log the URL being fetched
+          ? `${API_BASE_URL}/users/profile`
+          : `${API_BASE_URL}/users/${userId}`; 
 
-        const res = await fetch(url, {
+        const res = await axios.get<Profile>(url, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
         });
-        console.log("Response status:", res.status); // Log the response status
-        console.log("Response headers:", Object.fromEntries(res.headers.entries())); // Log response headers
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-        const text = await res.text();
-        console.log("Raw response:", text.substring(0, 500)); // Log first 500 characters of the response
-
-        let data;
-        try {
-          data = JSON.parse(text);
-        } catch (parseError) {
-          console.error("JSON parse error:", parseError);
-          throw new Error("Invalid JSON in response");
-        }
-        setProfile(data);
+        setProfile(res.data);
         if (!isOwnProfile && currentUser) {
-          setIsFollowing(data.followers.includes(currentUser._id));
+          setIsFollowing(res.data.followers.includes(currentUser._id));
         }
       } catch (error) {
-        console.error("Fetch error:", error);
+        console.error(error);
         toast({
           title: 'Error',
-          description: 'Failed to load profile. Please try again later.',
+          description: 'Failed to load profile.',
           variant: 'destructive',
         });
       }
@@ -75,22 +71,19 @@ export default function ProfilePage() {
   }, [userId, isOwnProfile, token, isAuthenticated, currentUser]);
 
   const handleFollow = async () => {
+    if (!profile) return;
     try {
-      const API_BASE_URL = 'http://localhost:5001'; // Define the backend API base URL
-      const res = await fetch(`${API_BASE_URL}/users/follow`, { // **Updated to absolute URL**
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ userIdToFollow: profile._id }),
-      });
-      if (!res.ok) {
-        throw new Error('Failed to follow user');
-      }
-      const data = await res.json();
+      const res = await axios.post<{followers: string[]}>(
+        `${API_BASE_URL}/users/follow`,
+        { userIdToFollow: profile._id },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
       setIsFollowing(true);
-      setProfile((prev: any) => ({ ...prev, followers: data.followers }));
+      setProfile(prev => prev ? { ...prev, followers: res.data.followers } : null);
       toast({
         title: 'Following',
         description: `You are now following ${profile.username}.`,
@@ -106,22 +99,19 @@ export default function ProfilePage() {
   };
 
   const handleUnfollow = async () => {
+    if (!profile) return;
     try {
-      const API_BASE_URL = 'http://localhost:5001'; // Define the backend API base URL
-      const res = await fetch(`${API_BASE_URL}/users/unfollow`, { // **Updated to absolute URL**
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ userIdToUnfollow: profile._id }),
-      });
-      if (!res.ok) {
-        throw new Error('Failed to unfollow user');
-      }
-      const data = await res.json();
+      const res = await axios.post<{followers: string[]}>(
+        `${API_BASE_URL}/users/unfollow`,
+        { userIdToUnfollow: profile._id },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
       setIsFollowing(false);
-      setProfile((prev: any) => ({ ...prev, followers: data.followers }));
+      setProfile(prev => prev ? { ...prev, followers: res.data.followers } : null);
       toast({
         title: 'Unfollowed',
         description: `You have unfollowed ${profile.username}.`,
@@ -138,20 +128,16 @@ export default function ProfilePage() {
 
   const handleAvatarUpdate = async () => {
     try {
-      const API_BASE_URL = 'http://localhost:5001'; // Define the backend API base URL
-      const res = await fetch(`${API_BASE_URL}/users/profile`, { // **Updated to absolute URL**
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ avatarUrl: newAvatarUrl }),
-      });
-      if (!res.ok) {
-        throw new Error('Failed to update avatar');
-      }
-      const data = await res.json();
-      setProfile(data);
+      const res = await axios.put<Profile>(
+        `${API_BASE_URL}/users/profile`,
+        { avatarUrl: newAvatarUrl },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+      setProfile(res.data);
       setIsDialogOpen(false);
       toast({
         title: 'Avatar Updated',

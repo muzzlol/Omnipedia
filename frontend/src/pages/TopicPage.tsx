@@ -40,6 +40,18 @@ interface User {
   avatarUrl: string;
 }
 
+// Add this helper function near the top of the file
+const formatUrl = (url: string) => {
+  const maxLength = 50;
+  const cleanUrl = url.replace(/^https?:\/\//, '');
+  
+  if (cleanUrl.length <= maxLength) return cleanUrl;
+  
+  const start = cleanUrl.substring(0, 30);
+  const end = cleanUrl.substring(cleanUrl.length - 15);
+  return `${start}...${end}`;
+};
+
 export const TopicPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const [topic, setTopic] = useState<Topic | null>(null);
@@ -252,8 +264,14 @@ export const TopicPage: React.FC = () => {
                   </a>
                 </h2>
                 <p className="text-muted-foreground">
-                  <a href={resource.url} target="_blank" rel="noopener noreferrer">
-                    {resource.url}
+                  <a 
+                    href={resource.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-500 hover:text-blue-700 transition-colors duration-200 hover:underline"
+                    title={resource.url} // Shows full URL on hover
+                  >
+                    {formatUrl(resource.url)}
                   </a>
                 </p>
               </div>

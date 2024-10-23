@@ -6,29 +6,35 @@ import { AuthRequest } from '../types/AuthRequest';
 
 // Get any user's profile by ID
 export const getUserProfile = asyncHandler(async (req: AuthRequest, res: Response) => {
-  const { userId } = req.params;
-
   try {
-    const user = await User.findById(userId)
+    console.log('Fetching user profile for ID:', req.params.userId);
+    
+    const user = await User.findById(req.params.userId)
       .populate({
         path: 'bookmarkedResources',
-        populate: { path: 'topic', select: 'name' }, // Populate topic with name
+        populate: { path: 'topic', select: 'name' }
       })
       .populate('followedUsers', 'username email')
       .populate('followers', 'username email')
       .populate({
         path: 'resources',
-        populate: { path: 'topic', select: 'name' }, // Populate topic with name
-        select: 'type url classification comprehensiveness skillLevel topic creator createdAt',
+        populate: { 
+          path: 'topic',
+          select: 'name'
+        },
+        select: 'url classification comprehensiveness skillLevel topic'
       });
 
     if (!user) {
+      console.log('User not found');
       return res.status(404).json({ message: 'User not found' });
     }
 
+    console.log('User resources:', user.resources);
+    
     res.status(200).json(user);
   } catch (error) {
-    console.error('Error fetching user profile:', error);
+    console.error('Error in getUserProfile:', error);
     res.status(500).json({ message: 'Server error while fetching user profile' });
   }
 });
@@ -202,34 +208,34 @@ export const unfollowUser = asyncHandler(async (req: AuthRequest, res: Response)
 // Get user profile with all relevant populated fields
 export const getProfile = asyncHandler(async (req: AuthRequest, res: Response) => {
   try {
+    console.log('Fetching profile for user:', req.user?._id);
+    
     const user = await User.findById(req.user?._id)
       .populate({
         path: 'bookmarkedResources',
-        populate: { path: 'topic', select: 'name' }, // Populate topic with name
+        populate: { path: 'topic', select: 'name' }
       })
       .populate('followedUsers', 'username email')
       .populate('followers', 'username email')
       .populate({
         path: 'resources',
-        populate: { path: 'topic', select: 'name' }, // Populate topic with name
-        select: 'type url classification comprehensiveness skillLevel topic creator createdAt',
+        populate: { 
+          path: 'topic',
+          select: 'name'
+        },
+        select: 'url classification comprehensiveness skillLevel topic'
       });
 
     if (!user) {
+      console.log('User not found');
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Modified response
-    res.status(200).json({
-      ...user.toObject(),
-      resources: user.resources.map(resource => ({
-        ...resource,
-        _id: resource._id, // Ensure _id is included
-        // ... other fields ...
-      })),
-    });
+    console.log('User resources:', user.resources);
+
+    res.status(200).json(user);
   } catch (error) {
-    console.error('Error fetching profile:', error);
+    console.error('Error in getProfile:', error);
     res.status(500).json({ message: 'Server error while fetching profile' });
   }
 });

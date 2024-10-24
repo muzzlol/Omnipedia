@@ -4,12 +4,6 @@ import { protect } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
-// Add logging middleware
-router.use((req, res, next) => {
-  console.log(`User Route accessed: ${req.method} ${req.originalUrl}`);
-  next();
-});
-
 router.get('/profile', protect, getProfile); 
 router.put('/profile', protect, updateProfile); 
 router.post('/bookmark', protect, bookmarkResource);

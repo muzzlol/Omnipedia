@@ -9,23 +9,28 @@ import resourceRoutes from "./routes/resourceRoutes.js";
 import errorHandler from "./middleware/errorHandler.js";
 import searchRoutes from "./routes/searchRoutes.js";
 import voteRoutes from "./routes/voteRoutes.js";
-import redis from "redis";
-import { redisConfig } from "./config/redisConfig.js";
-
-// redis setup
-export const redisClient = redis.createClient(redisConfig);
-redisClient.connect().then(() => {
-  console.log("Redis connected.");
-});
-
 dotenv.config();
 
 const app = express();
 
+import redisClient from "./config/redisConfig";
+
+redisClient.on("connect", () => {
+  console.log("Connected to Redis");
+});
+
+redisClient.on("error", (err) => {
+  console.error("Redis error:", err);
+});
+
 // CORS middleware
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://127.0.0.1:5173"], // Konnect to frontend
+    origin: [
+      "http://localhost:5173",
+      "http://127.0.0.1:5173",
+      `redis-13793.c301.ap-south-1-1.ec2.redns.redis-cloud.com:13793`,
+    ], // Konnect to frontend
     credentials: true,
   })
 );

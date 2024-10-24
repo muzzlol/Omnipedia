@@ -5,11 +5,10 @@ import asyncHandler from "../utils/asyncHandler";
 import { AuthRequest } from "../types/AuthRequest";
 import User from "../models/User";
 import { moderate } from "../utils/moderation";
-import { redisClient as client } from "../server";
+import redisClient from "../config/redisConfig";
 
 export const createTopic = async (req: Request, res: Response) => {
   const { name } = req.body;
-  // console.log(req);
   console.log(req.body);
   try {
     const existingTopic = await Topic.findOne({ name });
@@ -70,9 +69,11 @@ export const getTopicBySlug = asyncHandler(
   async (req: AuthRequest, res: Response) => {
     const { slug } = req.params;
     try {
-      const cachedOutput = await client.get(`topic/${slug}`);
+      // console.time("Response Time");
+      const cachedOutput = await redisClient.get(`topic/${slug}`);
       if (cachedOutput) {
         console.log("Cache hit");
+        // console.timeEnd("Response time cache hit.");
         return res.status(200).json(JSON.parse(cachedOutput));
       }
 
@@ -116,16 +117,19 @@ export const getTopicBySlug = asyncHandler(
       );
 
       // Set response in Redis if cache miss
-      await client.set(
+      await redisClient.set(
         `topic/${slug}`,
         JSON.stringify({
-          ...topic.toObject(),
+          ...topic.toObject(), // Assuming topic.toObject() exists in your logic
           resources: resourcesWithVotes,
         }),
         "EX",
-        600 //ten minutes
+        600 // Set expiration time of 600 seconds
       );
+
       console.log("Cache set");
+
+      // console.timeEnd("Response Time cache miss");
 
       return res.status(200).json({
         ...topic.toObject(),

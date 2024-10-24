@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.post('/', createTopic);
 router.get('/', getTopics);
-router.get('/:slug', protect, getTopicBySlug); 
+router.get('/:slug', getTopicBySlug); 
 router.put('/:slug', updateTopic);
 
 export default router;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -32,6 +32,10 @@ interface ResourceData {
   hasUpvoted?: boolean;
   hasDownvoted?: boolean;
   isBookmarked?: boolean;
+  creator ? : {
+    username : string
+    _id : string
+  } | null
 }
 
 interface User {
@@ -274,6 +278,13 @@ export const TopicPage: React.FC = () => {
                     {formatUrl(resource.url)}
                   </a>
                 </p>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Created by: {resource.creator ?
+                  <Link className="text-blue-500 hover:text-blue-700 transition-colors duration-200 hover:underline" to={`/profile/${resource.creator._id}`}>
+                    {resource.creator.username}
+                  </Link>
+                : 'AI'}
               </div>
               {/* Bookmark Icon */}
               <Button

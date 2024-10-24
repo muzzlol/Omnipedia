@@ -3,11 +3,11 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from "@/contexts/AuthContext";
 
 export const ProtectedRoute: React.FC = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+  if (loading) {
+    return <div>Loading...</div>; // Or a proper loading spinner.. add lator
   }
 
-  return <Outlet />;
+  return isAuthenticated ? <Outlet /> : <Navigate to="/login" />;
 };

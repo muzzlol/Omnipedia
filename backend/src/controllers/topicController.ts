@@ -76,9 +76,16 @@ export const getTopicBySlug = asyncHandler(
         // console.timeEnd("Response time cache hit.");
         return res.status(200).json(JSON.parse(cachedOutput));
       }
-
-      const topic = await Topic.findOne({ slug }).populate("resources");
-
+      const topic = await Topic.findOne({ slug })
+        .populate({
+          path: 'resources',
+          populate: [
+            {
+              path: 'creator',
+              select: '_id username'
+            }
+          ]
+        });
       if (!topic) {
         return res.status(404).json({ message: "Topic not found" });
       }

@@ -14,6 +14,7 @@ interface AuthContextType {
   currentUser: User | null;
   login: (token: string, user: User) => void;
   logout: () => void;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,26 +23,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [token, setToken] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    if (storedToken) {
-      setIsAuthenticated(true);
-      setToken(storedToken);
-      // Fetch user data
-      axios.get('http://localhost:5001/users/profile', {
-        headers: {
-          Authorization: `Bearer ${storedToken}`,
-        },
-      })
-      .then(response => {
-        setCurrentUser(response.data);
-      })
-      .catch(error => {
-        console.error('Error fetching user data:', error);
-        logout();
-      });
-    }
+    const initializeAuth = async () => {
+      const storedToken = localStorage.getItem('token');
+      if (storedToken) {
+        try {
+          const response = await axios.get('http://localhost:5001/users/profile', {
+            headers: {
+              Authorization: `Bearer ${storedToken}`,
+            },
+          });
+          setCurrentUser(response.data);
+          setToken(storedToken);
+          setIsAuthenticated(true);
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+          localStorage.removeItem('token');
+        }
+      }
+      setLoading(false);
+    };
+
+    initializeAuth();
   }, []);
 
   const login = (newToken: string, user: User) => {
@@ -60,7 +65,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, token, currentUser, login, logout }}
+      value={{ isAuthenticated, token, currentUser, login, logout, loading }}
     >
       {children}
     </AuthContext.Provider>

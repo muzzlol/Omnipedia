@@ -21,16 +21,18 @@ const App: React.FC = () => {
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<LoginForm />} />
               <Route path="/register" element={<RegisterForm />} />
-              <Route path="/topics/:slug" element={<TopicPage />} /> {/* Updated to use :slug */}
+              <Route path="/topics/:slug" element={<TopicPage />} />
               
               {/* Protected Routes */}
               <Route element={<ProtectedRoute />}>
-                <Route path="/profile" element={<ProfilePage />} /> {/* Personal Profile */}
-                <Route path="/profile/:userId" element={<ProfilePage />} /> {/* Public Profile */}
+                <Route path="/profile" element={<ProfilePage />} />
               </Route>
+              
+              {/* Public Profile Route - Note this is outside ProtectedRoute */}
+              <Route path="/profile/:userId" element={<ProfilePage />} />
             </Routes>
           </main>
-          <Toaster /> 
+          <Toaster />
         </div>
       </Router>
     </AuthProvider>

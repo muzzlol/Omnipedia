@@ -18,9 +18,6 @@ export const Navbar: React.FC = () => {
         EZ
       </Link>
       <nav className="hidden md:flex space-x-4">
-        <Link to="/topics" className="text-gray-600 hover:text-gray-900">
-          Topics
-        </Link>
         {isAuthenticated ? (
           <>
             <Link to="/profile" className="text-gray-600 hover:text-gray-900">

@@ -18,11 +18,6 @@ import redisClient from "./config/redisConfig";
 redisClient.on("connect", () => {
   console.log("Connected to Redis");
 });
-
-redisClient.on("error", (err) => {
-  console.error("Redis error:", err);
-});
-
 // CORS middleware
 app.use(
   cors({

@@ -5,10 +5,10 @@ import asyncHandler from "../utils/asyncHandler";
 import { AuthRequest } from "../types/AuthRequest";
 import User from "../models/User";
 import { moderate } from "../utils/moderation";
+import redisClient from "../config/redisConfig";
 
 export const createTopic = async (req: Request, res: Response) => {
   const { name } = req.body;
-  // console.log(req);
   console.log(req.body);
   try {
     const existingTopic = await Topic.findOne({ name });
@@ -68,8 +68,14 @@ export const updateTopic = async (req: Request, res: Response) => {
 export const getTopicBySlug = asyncHandler(
   async (req: AuthRequest, res: Response) => {
     const { slug } = req.params;
-
     try {
+      // console.time("Response Time");
+      const cachedOutput = await redisClient.get(`topic/${slug}`);
+      if (cachedOutput) {
+        console.log("Cache hit");
+        // console.timeEnd("Response time cache hit.");
+        return res.status(200).json(JSON.parse(cachedOutput));
+      }
       const topic = await Topic.findOne({ slug })
         .populate({
           path: 'resources',
@@ -80,7 +86,6 @@ export const getTopicBySlug = asyncHandler(
             }
           ]
         });
-
       if (!topic) {
         return res.status(404).json({ message: "Topic not found" });
       }
@@ -106,7 +111,7 @@ export const getTopicBySlug = asyncHandler(
               downvoters: [],
             });
           }
-
+          console.log("hello 124321");
           return {
             ...resource.toObject(),
             upvotes: vote.upvoters.length,
@@ -118,7 +123,22 @@ export const getTopicBySlug = asyncHandler(
         })
       );
 
-      res.status(200).json({
+      // Set response in Redis if cache miss
+      await redisClient.set(
+        `topic/${slug}`,
+        JSON.stringify({
+          ...topic.toObject(), // Assuming topic.toObject() exists in your logic
+          resources: resourcesWithVotes,
+        }),
+        "EX",
+        600 // Set expiration time of 600 seconds
+      );
+
+      console.log("Cache set");
+
+      // console.timeEnd("Response Time cache miss");
+
+      return res.status(200).json({
         ...topic.toObject(),
         resources: resourcesWithVotes,
       });

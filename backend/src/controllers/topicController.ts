@@ -70,7 +70,16 @@ export const getTopicBySlug = asyncHandler(
     const { slug } = req.params;
 
     try {
-      const topic = await Topic.findOne({ slug }).populate("resources");
+      const topic = await Topic.findOne({ slug })
+        .populate({
+          path: 'resources',
+          populate: [
+            {
+              path: 'creator',
+              select: '_id username'
+            }
+          ]
+        });
 
       if (!topic) {
         return res.status(404).json({ message: "Topic not found" });

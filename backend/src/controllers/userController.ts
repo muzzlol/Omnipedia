@@ -7,8 +7,6 @@ import { AuthRequest } from '../types/AuthRequest';
 // Get any user's profile by ID
 export const getUserProfile = asyncHandler(async (req: AuthRequest, res: Response) => {
   try {
-    console.log('Fetching user profile for ID:', req.params.userId);
-    
     const user = await User.findById(req.params.userId)
       .populate({
         path: 'bookmarkedResources',
@@ -29,8 +27,6 @@ export const getUserProfile = asyncHandler(async (req: AuthRequest, res: Respons
       console.log('User not found');
       return res.status(404).json({ message: 'User not found' });
     }
-
-    console.log('User resources:', user.resources);
     
     res.status(200).json(user);
   } catch (error) {
@@ -208,8 +204,6 @@ export const unfollowUser = asyncHandler(async (req: AuthRequest, res: Response)
 // Get user profile with all relevant populated fields
 export const getProfile = asyncHandler(async (req: AuthRequest, res: Response) => {
   try {
-    console.log('Fetching profile for user:', req.user?._id);
-    
     const user = await User.findById(req.user?._id)
       .populate({
         path: 'bookmarkedResources',
@@ -230,9 +224,6 @@ export const getProfile = asyncHandler(async (req: AuthRequest, res: Response) =
       console.log('User not found');
       return res.status(404).json({ message: 'User not found' });
     }
-
-    console.log('User resources:', user.resources);
-
     res.status(200).json(user);
   } catch (error) {
     console.error('Error in getProfile:', error);

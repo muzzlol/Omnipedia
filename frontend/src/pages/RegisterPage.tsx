@@ -1,26 +1,25 @@
-import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { register as apiRegister } from '@/api/auth'
-import { useAuth } from '@/contexts/AuthContext'
-
-import { Button } from "@/components/ui/button"
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { register as apiRegister } from '@/api/auth';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export function RegisterForm() {
-  const [username, setUsername] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const navigate = useNavigate()
-  const { login } = useAuth()
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -89,5 +88,5 @@ export function RegisterForm() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

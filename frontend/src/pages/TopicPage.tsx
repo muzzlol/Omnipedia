@@ -11,7 +11,7 @@ import VoteModal from '@/components/VoteModal';
 import { BiUpvote, BiSolidUpvote, BiDownvote, BiSolidDownvote } from "react-icons/bi";
 import { BsBookmarks, BsBookmarksFill } from "react-icons/bs";
 import AddResource from '@/components/AddResource'; 
-import ReactMarkdown from 'react-markdown'; // Import ReactMarkdown
+import ReactMarkdown from 'react-markdown';
 
 interface Topic {
   _id: string;

@@ -245,6 +245,7 @@ export const generateResourcesForTopic = asyncHandler(
 
           // Add resource to the topic's resources array
           topic.resources.push(resource._id as any);
+
           return resource;
         })
       );

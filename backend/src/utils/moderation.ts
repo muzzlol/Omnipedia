@@ -41,16 +41,10 @@ export const moderate = async (name: string): Promise<boolean> => {
     }
   );
 
-  console.log("content moderation done.");
-
   const safetyRatings = response.data.candidates[0].safetyRatings;
-
-  console.log("safety ratings : ", safetyRatings);
 
   const isAppropriate = safetyRatings.every(
     (item) => item.probability === "NEGLIGIBLE"
   );
-
-  console.log("appropriate : ", isAppropriate);
   return isAppropriate;
 };

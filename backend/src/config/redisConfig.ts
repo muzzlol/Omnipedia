@@ -1,28 +1,21 @@
-// import { RedisClientOptions } from "redis";
-import dotenv from "dotenv";
+import { createClient } from "redis";
 
-dotenv.config(); // Load .env variables
+const connectRedis = async (): Promise<typeof redisClient> => {
+  const redisURL = process.env.REDIS_URL;
+  
+  if (!redisURL) {
+    throw new Error("REDIS_URL is not defined in the environment variables");
+  }
+  
+  const redisClient = createClient({ url: redisURL });
+  try {
+    await redisClient.connect();
+    console.log('Redis connected successfully');
+    return redisClient;
+  } catch (err: any) {
+    console.error('Redis connection error:', err.message, 'Full error:', err);
+    throw err;
+  }
+};
 
-// export const redisConfig: RedisClientOptions = {
-//   password: process.env.REDIS_PASSWORD || "",
-//   socket: {
-//     host: process.env.REDIS_SOCKET_HOST || "127.0.0.1",
-//     port: parseInt(process.env.REDIS_SOCKET_PORT || "6379", 10),
-//   },
-// };
-
-import Redis from "ioredis";
-
-// Load environment variables from the .env file
-const redisPassword = process.env.REDIS_PASSWORD || "";
-const redisSocketHost = process.env.REDIS_SOCKET_HOST || "localhost";
-const redisSocketPort = parseInt(process.env.REDIS_SOCKET_PORT || "6379", 10);
-
-const redisClient = new Redis({
-  host: redisSocketHost,
-  port: redisSocketPort,
-  password: redisPassword,
-  connectTimeout: 30000,
-});
-
-export default redisClient;
+export default connectRedis;

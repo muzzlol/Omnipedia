@@ -1,30 +1,26 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import connectDB from "./config/db.js";
-import topicRoutes from "./routes/topicRoutes.js";
-import authRoutes from "./routes/authRoutes.js";
-import userRoutes from "./routes/userRoutes.js";
-import resourceRoutes from "./routes/resourceRoutes.js";
-import errorHandler from "./middleware/errorHandler.js";
-import searchRoutes from "./routes/searchRoutes.js";
-import voteRoutes from "./routes/voteRoutes.js";
+import connectDB from "./config/db";
+import connectRedis from "./config/redisConfig";
+import topicRoutes from "./routes/topicRoutes";
+import authRoutes from "./routes/authRoutes";
+import userRoutes from "./routes/userRoutes";
+import resourceRoutes from "./routes/resourceRoutes";
+import errorHandler from "./middleware/errorHandler";
+import searchRoutes from "./routes/searchRoutes";
+import voteRoutes from "./routes/voteRoutes";
+
 dotenv.config();
 
 const app = express();
 
-import redisClient from "./config/redisConfig";
-
-redisClient.on("connect", () => {
-  console.log("Connected to Redis");
-});
 // CORS middleware
 app.use(
   cors({
     origin: [
       "http://localhost:5173",
       "http://127.0.0.1:5173",
-      `redis-13793.c301.ap-south-1-1.ec2.redns.redis-cloud.com:13793`,
     ], // Konnect to frontend
     credentials: true,
   })
@@ -48,13 +44,19 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5001;
 
-connectDB()
-  .then(() => {
+// Initialize connections and start server
+const startServer = async () => {
+  try {
+    await connectDB();
+    await connectRedis();
+    
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
-  })
-  .catch((err) => {
-    console.error("Failed to connect to the database", err);
+  } catch (err) {
+    console.error("Failed to initialize server:", err);
     process.exit(1);
-  });
+  }
+};
+
+startServer();

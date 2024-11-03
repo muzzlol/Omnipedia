@@ -69,25 +69,21 @@ export const getTopicBySlug = asyncHandler(
   async (req: AuthRequest, res: Response) => {
     const { slug } = req.params;
     try {
-      // // console.time("Response Time");
-      // const cachedOutput = await redisClient.get(`topic/${slug}`);
-      // if (cachedOutput) {
-      //   console.log("Cache hit");
-      //   // console.timeEnd("Response time cache hit.");
-      //   return res.status(200).json(JSON.parse(cachedOutput));
-      // }
+      // Try to get data from cache
+      const cachedData = await redisClient.get(`topic:${slug}`);
+      if (cachedData) {
+        console.log(`Cache hit for topic: ${slug}`);
+        return res.status(200).json(JSON.parse(cachedData));
+      }
+
+      // If not in cache, fetch from database
       const topic = await Topic.findOne({ slug })
         .populate({
           path: 'resources',
-          populate: [
-            {
-              path: 'creator',
-              select: '_id username'
-            }
-          ]
+          populate: { path: 'creator', select: '_id username' },
         });
       if (!topic) {
-        return res.status(404).json({ message: "Topic not found" });
+        return res.status(404).json({ message: 'Topic not found' });
       }
 
       // Fetch user's bookmarked resources
@@ -122,25 +118,17 @@ export const getTopicBySlug = asyncHandler(
         })
       );
 
-      // // Set response in Redis if cache miss
-      // await redisClient.set(
-      //   `topic/${slug}`,
-      //   JSON.stringify({
-      //     ...topic.toObject(), // Assuming topic.toObject() exists in your logic
-      //     resources: resourcesWithVotes,
-      //   }),
-      //   "EX",
-      //   600 // Set expiration time of 600 seconds
-      // );
-
-      // console.log("Cache set");
-
-      // console.timeEnd("Response Time cache miss");
-
-      return res.status(200).json({
+      // Prepare response data
+      const responseData = {
         ...topic.toObject(),
         resources: resourcesWithVotes,
-      });
+      };
+
+      // Store data in cache with expiration
+      await redisClient.setEx(`topic:${slug}`, 600, JSON.stringify(responseData));
+      console.log(`Cache set for topic: ${slug}`);
+
+      return res.status(200).json(responseData);
     } catch (error) {
       console.error("Error fetching topic:", error);
       res.status(500).json({ message: "Server error while fetching topic" });

@@ -1,12 +1,13 @@
 import { createClient, RedisClientType } from "redis";
 
+const redisURL = process.env.REDIS_URL;
+const redisClient = createClient({ url: redisURL }) as RedisClientType;
+
 const connectRedis = async (): Promise<RedisClientType> => {
-  const redisURL = process.env.REDIS_URL;
   if (!redisURL) {
     throw new Error("REDIS_URL is not defined in the environment variables");
   }
 
-  const redisClient = createClient({ url: redisURL }) as RedisClientType;
   try {
     await redisClient.connect();
     console.log('Redis connected successfully');
@@ -17,4 +18,4 @@ const connectRedis = async (): Promise<RedisClientType> => {
   }
 };
 
-export default connectRedis;
+export { redisClient, connectRedis as default};

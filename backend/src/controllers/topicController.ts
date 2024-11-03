@@ -5,6 +5,7 @@ import asyncHandler from "../utils/asyncHandler";
 import { AuthRequest } from "../types/AuthRequest";
 import User from "../models/User";
 import { moderate } from "../utils/moderation";
+import { redisClient } from '../config/redisConfig';
 
 export const createTopic = async (req: Request, res: Response) => {
   const { name } = req.body;

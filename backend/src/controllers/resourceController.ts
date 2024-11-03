@@ -6,7 +6,7 @@ import User from "../models/User";
 import { AuthRequest } from "../types/AuthRequest";
 import { generateResources } from "../utils/perplexity";
 import Topic from "../models/Topic";
-import redisClient from "../config/redisConfig";
+import { redisClient } from "../config/redisConfig";
 
 // Add a new resource
 export const addResource = asyncHandler(
@@ -57,7 +57,13 @@ export const addResource = asyncHandler(
 
       // Refresh cache
       const slug = updatedTopic?.slug;
-      await redisClient.del([`topic/${slug}`]);
+      await redisClient.del(`topic/${slug}`);
+
+      // Invalidate cache for the topic
+      if (slug) {
+        await redisClient.del(`topic:${slug}`);
+        console.log(`Cache invalidated for topic: ${slug}`);
+      }
 
       // Initialize Vote document for the new resource
       const vote = new Vote({

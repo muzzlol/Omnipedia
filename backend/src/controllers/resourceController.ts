@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import Resource from "../models/Resource";
-import asyncHandler from "../utils/asyncHandler";
-import Vote from "../models/Vote";
-import User from "../models/User";
 import { AuthRequest } from "../types/AuthRequest";
+import asyncHandler from "../utils/asyncHandler";
 import { generateResources } from "../utils/perplexity";
-import Topic from "../models/Topic";
 import { redisClient } from "../config/redisConfig";
+import User from "../models/User";
+import Topic from "../models/Topic";
+import Vote from "../models/Vote";
+import Resource from "../models/Resource";
 
 // Add a new resource
 export const addResource = asyncHandler(

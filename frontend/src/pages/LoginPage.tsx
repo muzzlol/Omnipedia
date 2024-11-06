@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom'
-import { login as apiLogin } from '@/api/auth'
+import { Link, useNavigate } from 'react-router-dom';
+import { login as apiLogin } from '@/api/auth';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
 import {
@@ -14,11 +14,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export function LoginForm() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const navigate = useNavigate()
-  const { login } = useAuth()
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -30,8 +30,8 @@ export function LoginForm() {
     } catch (err: any) {
       console.error('Full login error:', err);
       setError(err.message || 'An error occurred during login');
-    }
-  }
+    };
+  };
 
   return (
     <Card className="mx-auto max-w-sm">
@@ -82,6 +82,6 @@ export function LoginForm() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 

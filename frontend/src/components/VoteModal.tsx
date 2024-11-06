@@ -32,7 +32,7 @@ const VoteModal: React.FC<VoteModalProps> = ({ triggerText, title, users, fetchU
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <p id={descriptionId} className="text-sm text-muted-foreground">
-            Users who have {title.toLowerCase()} this resource.
+            {triggerText}
           </p>
         </DialogHeader>
         <ScrollArea className="h-[300px] w-full rounded-md border p-4">

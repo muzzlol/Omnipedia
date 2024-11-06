@@ -26,4 +26,5 @@ const ResourceSchema: Schema = new Schema({
   // Removed votes field
 });
 
-export default mongoose.model<IResource>('Resource', ResourceSchema);
+const Resource =  mongoose.model<IResource>('Resource', ResourceSchema);
+export default Resource;

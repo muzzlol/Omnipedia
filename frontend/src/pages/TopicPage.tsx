@@ -13,6 +13,7 @@ import { BsBookmarks, BsBookmarksFill } from "react-icons/bs";
 import AddResource from '@/components/AddResource'; 
 import ReactMarkdown from 'react-markdown';
 
+
 interface Topic {
   _id: string;
   name: string;
@@ -75,12 +76,25 @@ export const TopicPage: React.FC = () => {
   useEffect(() => {
     const fetchTopic = async () => {
       try {
-        // Ensure the request includes the Authorization header
-        const response = await axios.get(`http://localhost:5001/topics/${slug}`, {
+        // Fetch generic topic data
+        const topicResponse = await axios.get(`http://localhost:5001/topics/${slug}`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
-        setTopic(response.data);
-        setResources(response.data.resources); // Resources include upvotes, downvotes, hasUpvoted, hasDownvoted, isBookmarked
+        setTopic(topicResponse.data);
+        setResources(topicResponse.data.resources);
+        
+        // Fetch user-specific flags
+        const flagsResponse = await axios.get(`http://localhost:5001/topics/${slug}/flags`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        const bookmarkedIds = flagsResponse.data.bookmarkedResourceIds;
+
+        // Update resources with isBookmarked flag based on user data
+        setResources(prevResources => prevResources.map(resource => ({
+          ...resource,
+          isBookmarked: bookmarkedIds.includes(resource._id)
+        })));
+        
         setLoading(false);
       } catch (err: any) {
         setError('Failed to fetch topic');

@@ -69,10 +69,10 @@ export const getTopicBySlug = asyncHandler(
   async (req: AuthRequest, res: Response) => {
     const { slug } = req.params;
     try {
-      // Try to get data from cache
-      const cachedData = await redisClient.get(`topic:${slug}`);
+      // Try to get data from cache (exclude user-specific flags)
+      const cachedData = await redisClient.get(`topic:${slug}:generic`);
       if (cachedData) {
-        console.log(`Cache hit for topic: ${slug}`);
+        console.log(`Cache hit for generic topic data: ${slug}`);
         return res.status(200).json(JSON.parse(cachedData));
       }
 
@@ -86,15 +86,7 @@ export const getTopicBySlug = asyncHandler(
         return res.status(404).json({ message: 'Topic not found' });
       }
 
-      // Fetch user's bookmarked resources
-      const user = await User.findById(req.user?._id).select(
-        "bookmarkedResources"
-      );
-
-      const userBookmarkedResourceIds =
-        user?.bookmarkedResources.map((id) => id.toString()) || [];
-
-      // Fetch Vote counts for each resource, creating Vote documents if they don't exist
+      // Include vote counts without user-specific flags
       const resourcesWithVotes = await Promise.all(
         topic.resources.map(async (resource: any) => {
           let vote = await Vote.findOne({ resource: resource._id });
@@ -111,27 +103,46 @@ export const getTopicBySlug = asyncHandler(
             ...resource.toObject(),
             upvotes: vote.upvoters.length,
             downvotes: vote.downvoters.length,
-            isBookmarked: userBookmarkedResourceIds.includes(
-              resource._id.toString()
-            ), // **Set isBookmarked flag**
           };
         })
       );
 
-      // Prepare response data
+      // Prepare generic response data
       const responseData = {
         ...topic.toObject(),
         resources: resourcesWithVotes,
       };
 
-      // Store data in cache with expiration
-      await redisClient.setEx(`topic:${slug}`, 600, JSON.stringify(responseData));
-      console.log(`Cache set for topic: ${slug}`);
+      // Store generic data in cache with expiration
+      await redisClient.setEx(`topic:${slug}:generic`, 600, JSON.stringify(responseData));
+      console.log(`Generic cache set for topic: ${slug}`);
 
       return res.status(200).json(responseData);
     } catch (error) {
       console.error("Error fetching topic:", error);
       res.status(500).json({ message: "Server error while fetching topic" });
+    }
+  }
+);
+
+// Get user-specific flags for a topic
+export const getUserTopicFlags = asyncHandler(
+  async (req: AuthRequest, res: Response) => {
+    const { slug } = req.params;
+    try {
+      const userId = req.user?._id;
+      const user = await User.findById(userId).select("bookmarkedResources");
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const bookmarkedResourceIds = user.bookmarkedResources.map(id => id.toString());
+
+      res.status(200).json({ bookmarkedResourceIds });
+    } catch (error) {
+      console.error("Error fetching user topic flags:", error);
+      res.status(500).json({ message: "Server error while fetching user flags" });
     }
   }
 );

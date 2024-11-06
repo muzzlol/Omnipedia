@@ -125,21 +125,45 @@ export const getTopicBySlug = asyncHandler(
   }
 );
 
-// Get user-specific flags for a topic
+// Get user-specific flags for a topic (including votes)
 export const getUserTopicFlags = asyncHandler(
   async (req: AuthRequest, res: Response) => {
     const { slug } = req.params;
     try {
       const userId = req.user?._id;
       const user = await User.findById(userId).select("bookmarkedResources");
-
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      const bookmarkedResourceIds = user.bookmarkedResources.map(id => id.toString());
+      // Find the topic to get its resources
+      const topic = await Topic.findOne({ slug }).select('resources');
+      if (!topic) {
+        return res.status(404).json({ message: "Topic not found" });
+      }
+      const resourceIds = topic.resources.map(id => id.toString());
 
-      res.status(200).json({ bookmarkedResourceIds });
+      // Find resources the user has upvoted
+      const upvotedVotes = await Vote.find({
+        resource: { $in: resourceIds },
+        upvoters: userId
+      }).select('resource');
+
+      const upvotedResourceIds = upvotedVotes.map(vote => vote.resource.toString());
+
+      // Find resources the user has downvoted
+      const downvotedVotes = await Vote.find({
+        resource: { $in: resourceIds },
+        downvoters: userId
+      }).select('resource');
+
+      const downvotedResourceIds = downvotedVotes.map(vote => vote.resource.toString());
+
+      res.status(200).json({
+        bookmarkedResourceIds: user.bookmarkedResources.map(id => id.toString()),
+        upvotedResourceIds,
+        downvotedResourceIds
+      });
     } catch (error) {
       console.error("Error fetching user topic flags:", error);
       res.status(500).json({ message: "Server error while fetching user flags" });

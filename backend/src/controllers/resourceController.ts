@@ -163,6 +163,12 @@ export const upvoteResource = asyncHandler(
         upvotes: vote.upvoters.length,
         downvotes: vote.downvoters.length,
       });
+      // After saving the vote in upvoteResource/downvoteResource
+      const resource = await Resource.findById(id);
+      const topic = await Topic.findById(resource?.topic);
+      if (topic) {
+        await redisClient.del(`topic:${topic.slug}:generic`);
+      }
     } catch (error) {
       console.error("Error upvoting resource:", error);
       res.status(500).json({ message: "Server error while upvoting resource" });
@@ -205,6 +211,12 @@ export const downvoteResource = asyncHandler(
         upvotes: vote.upvoters.length,
         downvotes: vote.downvoters.length,
       });
+      // After saving the vote in upvoteResource/downvoteResource
+      const resource = await Resource.findById(id);
+      const topic = await Topic.findById(resource?.topic);
+      if (topic) {
+        await redisClient.del(`topic:${topic.slug}:generic`);
+      }
     } catch (error) {
       console.error("Error downvoting resource:", error);
       res

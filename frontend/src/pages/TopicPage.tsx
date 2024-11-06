@@ -13,7 +13,6 @@ import { BsBookmarks, BsBookmarksFill } from "react-icons/bs";
 import AddResource from '@/components/AddResource'; 
 import ReactMarkdown from 'react-markdown';
 
-
 interface Topic {
   _id: string;
   name: string;
@@ -33,9 +32,9 @@ interface ResourceData {
   hasUpvoted?: boolean;
   hasDownvoted?: boolean;
   isBookmarked?: boolean;
-  creator ? : {
-    username : string
-    _id : string
+  creator?: {
+    username: string
+    _id: string
   } | null
 }
 
@@ -72,27 +71,34 @@ export const TopicPage: React.FC = () => {
   // Define API Base URLs
   const VOTE_BASE_URL = 'http://localhost:5001/vote';
   const USER_BASE_URL = 'http://localhost:5001/users';
+  const TOPIC_BASE_URL = 'http://localhost:5001/topics';
 
   useEffect(() => {
     const fetchTopic = async () => {
       try {
         // Fetch generic topic data
-        const topicResponse = await axios.get(`http://localhost:5001/topics/${slug}`, {
+        const topicResponse = await axios.get(`${TOPIC_BASE_URL}/${slug}`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         setTopic(topicResponse.data);
         setResources(topicResponse.data.resources);
         
         // Fetch user-specific flags
-        const flagsResponse = await axios.get(`http://localhost:5001/topics/${slug}/flags`, {
+        const flagsResponse = await axios.get(`${TOPIC_BASE_URL}/${slug}/flags`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
-        const bookmarkedIds = flagsResponse.data.bookmarkedResourceIds;
+        const {
+          bookmarkedResourceIds,
+          upvotedResourceIds,
+          downvotedResourceIds
+        } = flagsResponse.data;
 
-        // Update resources with isBookmarked flag based on user data
+        // Update resources with user-specific flags
         setResources(prevResources => prevResources.map(resource => ({
           ...resource,
-          isBookmarked: bookmarkedIds.includes(resource._id)
+          isBookmarked: bookmarkedResourceIds.includes(resource._id),
+          hasUpvoted: upvotedResourceIds.includes(resource._id),
+          hasDownvoted: downvotedResourceIds.includes(resource._id)
         })));
         
         setLoading(false);
@@ -224,6 +230,67 @@ export const TopicPage: React.FC = () => {
     });
   };
 
+  // Update Vote Handlers to Reflect Upvoted/Downvoted Status
+  const handleUpvote = async (resourceId: string) => {
+    try {
+      const response = await axios.post(
+        `${VOTE_BASE_URL}/upvote/${resourceId}`,
+        {},
+        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+      );
+      // Update resource with new upvote/downvote counts and vote status
+      setResources(prev =>
+        prev.map(r => r._id === resourceId ? { 
+          ...r, 
+          upvotes: response.data.upvotes, 
+          downvotes: response.data.downvotes, 
+          hasUpvoted: true, 
+          hasDownvoted: false 
+        } : r)
+      );
+      toast({
+        title: 'Upvoted',
+        description: 'You have upvoted this resource.',
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Error',
+        description: err.response?.data?.message || 'Failed to upvote.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDownvote = async (resourceId: string) => {
+    try {
+      const response = await axios.post(
+        `${VOTE_BASE_URL}/downvote/${resourceId}`,
+        {},
+        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+      );
+      // Update resource with new upvote/downvote counts and vote status
+      setResources(prev =>
+        prev.map(r => r._id === resourceId ? { 
+          ...r, 
+          upvotes: response.data.upvotes, 
+          downvotes: response.data.downvotes, 
+          hasUpvoted: false, 
+          hasDownvoted: true 
+        } : r)
+      );
+      toast({
+        title: 'Downvoted',
+        description: 'You have downvoted this resource.',
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Error',
+        description: err.response?.data?.message || 'Failed to downvote.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -329,31 +396,8 @@ export const TopicPage: React.FC = () => {
                   {/* Upvote Button with Icons */}
                   <Button
                     variant="ghost"
-                    onClick={async () => {
-                      try {
-                        const response = await axios.post(
-                          `${VOTE_BASE_URL}/upvote/${resource._id}`,
-                          {},
-                          { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
-                        );
-                        // Update resource with new upvote/downvote counts and vote status
-                        setResources(prev =>
-                          prev.map(r => r._id === resource._id ? { 
-                            ...r, 
-                            upvotes: response.data.upvotes, 
-                            downvotes: response.data.downvotes, 
-                            hasUpvoted: true, 
-                            hasDownvoted: false 
-                          } : r)
-                        );
-                      } catch (err: any) {
-                        toast({
-                          title: 'Error',
-                          description: err.response?.data?.message || 'Failed to upvote.',
-                          variant: 'destructive',
-                        });
-                      }
-                    }}
+                    onClick={() => handleUpvote(resource._id)}
+                    aria-label={resource.hasUpvoted ? 'Remove Upvote' : 'Upvote'}
                   >
                     {/* Use solid icon if upvoted, else outline icon */}
                     {resource.hasUpvoted ? <BiSolidUpvote /> : <BiUpvote />}
@@ -362,31 +406,8 @@ export const TopicPage: React.FC = () => {
                   {/* Downvote Button with Icons */}
                   <Button
                     variant="ghost"
-                    onClick={async () => {
-                      try {
-                        const response = await axios.post(
-                          `${VOTE_BASE_URL}/downvote/${resource._id}`,
-                          {},
-                          { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
-                        );
-                        // Update resource with new upvote/downvote counts and vote status
-                        setResources(prev =>
-                          prev.map(r => r._id === resource._id ? { 
-                            ...r, 
-                            upvotes: response.data.upvotes, 
-                            downvotes: response.data.downvotes, 
-                            hasUpvoted: false, 
-                            hasDownvoted: true 
-                          } : r)
-                        );
-                      } catch (err: any) {
-                        toast({
-                          title: 'Error',
-                          description: err.response?.data?.message || 'Failed to downvote.',
-                          variant: 'destructive',
-                        });
-                      }
-                    }}
+                    onClick={() => handleDownvote(resource._id)}
+                    aria-label={resource.hasDownvoted ? 'Remove Downvote' : 'Downvote'}
                   >
                     {/* Use solid icon if downvoted, else outline icon */}
                     {resource.hasDownvoted ? <BiSolidDownvote /> : <BiDownvote />}

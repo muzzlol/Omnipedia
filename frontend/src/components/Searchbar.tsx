@@ -147,7 +147,14 @@ export const SearchBar: React.FC = () => {
       if (error.response && error.response.status === 400) {
         toast({
           title: "Creation Failed",
-          description: error.response.data.message || "Topic already exists.",
+          description:
+            error.response.data.message || "Topic already exists.",
+          variant: "destructive",
+        });
+      } else if (error.response && error.response.status === 401) {
+        toast({
+          title: "Unauthorized",
+          description: "You need to be logged in to create a topic.",
           variant: "destructive",
         });
       } else {

@@ -1,11 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
-import asyncHandler from '../utils/asyncHandler';
-import { AuthRequest } from '../types/AuthRequest';
+
+interface AuthRequest extends Request {
+  user?: any;
+}
 
 // Protect middleware to verify JWT and authenticate user
-export const protect = asyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const protect = async (req: AuthRequest, res: Response, next: NextFunction) => {
   let token;
 
   if (
@@ -22,16 +24,9 @@ export const protect = asyncHandler(async (req: AuthRequest, res: Response, next
       // Attach user to request
       req.user = await User.findById(decoded.id).select('-password');
       
-      if (!req.user) {
-        return res.status(401).json({ message: 'User not found' });
-      }
-
       next();
     } catch (error) {
       console.error('Auth Middleware Error:', error);
-      if (error instanceof jwt.TokenExpiredError) {
-        return res.status(401).json({ message: 'Token expired', expired: true });
-      }
       res.status(401).json({ message: 'Not authorized, token failed' });
     }
   }
@@ -39,7 +34,7 @@ export const protect = asyncHandler(async (req: AuthRequest, res: Response, next
   if (!token) {
     res.status(401).json({ message: 'Not authorized, no token' });
   }
-});
+};
 
 // Admin middleware to check for admin privileges
 export const admin = (req: AuthRequest, res: Response, next: NextFunction) => {

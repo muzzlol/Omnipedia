@@ -11,10 +11,10 @@ import { protect } from "../middleware/authMiddleware";
 const router = express.Router();
 
 router.post('/', protect, createTopic);
-router.get('/', protect, getTopics);
-router.get('/:slug', protect, getTopicBySlug);
-router.put('/:slug', protect, updateTopic);
+router.get('/', getTopics);
+router.get('/:slug', getTopicBySlug);
 router.get('/:slug/flags', protect, getUserTopicFlags);
+router.put('/:slug', protect, updateTopic);
 
 
 export default router;

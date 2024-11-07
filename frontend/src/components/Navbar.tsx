@@ -8,6 +8,7 @@ import {
   SheetTrigger,
 } from "./ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
+import { Separator } from "./ui/separator";
 
 export const Navbar: React.FC = () => {
   const { isAuthenticated, logout } = useAuth();
@@ -23,15 +24,17 @@ export const Navbar: React.FC = () => {
             <Link to="/profile" className="text-gray-600 hover:text-gray-900">
               Profile
             </Link>
-            <Button onClick={logout} variant="ghost">
+            <Separator orientation="vertical" className="h-6" />
+            <Link to="/" onClick={logout} className="text-gray-600 hover:text-gray-900">
               Logout
-            </Button>
+            </Link>
           </>
         ) : (
           <>
             <Link to="/login" className="text-gray-600 hover:text-gray-900">
               Login
             </Link>
+            <Separator orientation="vertical" className="h-6" />
             <Link to="/register" className="text-gray-600 hover:text-gray-900">
               Register
             </Link>
@@ -47,23 +50,22 @@ export const Navbar: React.FC = () => {
         </SheetTrigger>
         <SheetContent side="right">
           <nav className="flex flex-col space-y-4">
-            <Link to="/topics" className="text-gray-600 hover:text-gray-900">
-              Topics
-            </Link>
             {isAuthenticated ? (
               <>
                 <Link to="/profile" className="text-gray-600 hover:text-gray-900">
                   Profile
                 </Link>
-                <Button onClick={logout} variant="ghost">
+                <Separator orientation="horizontal" className="w-full" />
+                <Link to="/" onClick={logout} className="text-gray-600 hover:text-gray-900">
                   Logout
-                </Button>
+                </Link>
               </>
             ) : (
               <>
                 <Link to="/login" className="text-gray-600 hover:text-gray-900">
                   Login
                 </Link>
+                <Separator orientation="horizontal" className="w-full" />
                 <Link to="/register" className="text-gray-600 hover:text-gray-900">
                   Register
                 </Link>

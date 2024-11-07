@@ -13,7 +13,9 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog"; // Import Dialog components
+} from "@/components/ui/dialog";
+import { LoadingScreen } from "./LoadingScreen";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Topic {
   _id: string;
@@ -30,9 +32,11 @@ export const SearchBar: React.FC = () => {
   const [noResults, setNoResults] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false); // Dialog state
   const [newTopicName, setNewTopicName] = useState(""); // New topic name state
+  const [loading, setLoading] = useState(false); // Loading state
 
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { token } = useAuth();
 
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -65,7 +69,7 @@ export const SearchBar: React.FC = () => {
       }
     };
 
-    const debounceTimer = setTimeout(fetchSuggestions, 500); // Debounce time: 500ms
+    const debounceTimer = setTimeout(fetchSuggestions, 200);
 
     return () => clearTimeout(debounceTimer);
   }, [searchTerm]);
@@ -82,6 +86,8 @@ export const SearchBar: React.FC = () => {
         });
         return;
       }
+
+      setLoading(true); // Start loading
 
       try {
         const response = await axios.get(
@@ -105,6 +111,8 @@ export const SearchBar: React.FC = () => {
             variant: "destructive",
           });
         }
+      } finally {
+        setLoading(false); // End loading
       }
     }
   };
@@ -124,12 +132,30 @@ export const SearchBar: React.FC = () => {
       return;
     }
 
-    try {
-      // Await the POST request to ensure topic is created before redirecting
-      const response = await axios.post("http://localhost:5001/topics", {
-        name: trimmedName,
+    if (!token) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to create a topic.",
+        variant: "destructive",
       });
-      console.log(`POST response status: ${response.status}`);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true); // Start loading
+
+    try {
+      // Make the POST request with the Authorization header from AuthContext
+      const response = await axios.post(
+        "http://localhost:5001/topics",
+        {
+          name: trimmedName,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }, // Use token from context
+        }
+      );
+
       if (response.status === 201) {
         const { slug } = response.data;
         console.log(`Topic created with slug: ${slug}`);
@@ -165,106 +191,117 @@ export const SearchBar: React.FC = () => {
           variant: "destructive",
         });
       }
+    } finally {
+      setLoading(false); // End loading
     }
   };
 
   return (
-    <div className="w-full max-w-md space-y-4">
-      <div className="relative">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-        <Input
-          type="search"
-          placeholder="Search for a topic..."
-          className="pl-8"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          onFocus={() => setShowSuggestions(true)}
-          onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
-          onKeyDown={handleKeyDown}
-        />
-        {error && <div className="text-red-500">{error}</div>}
-        {showSuggestions && (
-          <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg">
-            {noResults ? (
-              <div className="px-3 py-2 text-gray-500">No results found</div>
-            ) : (
-              suggestions.map((suggestion) => (
-                <div
-                  key={suggestion._id}
-                  className="flex items-center px-3 py-2 cursor-pointer hover:bg-gray-100"
-                  onMouseDown={() => {
-                    setSearchTerm(suggestion.name);
-                    navigate(`/topics/${suggestion.slug}`); // Navigate on click
-                  }}
-                >
-                  <Search className="h-4 w-4 mr-2 text-gray-400" />
-                  {suggestion.name}
-                </div>
-              ))
-            )}
-            <div className="flex justify-center p-2 border-t">
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="w-full">Create Topic</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Create a New Topic</DialogTitle>
-                    <DialogDescription>
-                      Enter the name of the topic you want to create.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <Input
-                    type="text"
-                    placeholder="Topic Name"
-                    value={newTopicName}
-                    onChange={(e) => setNewTopicName(e.target.value)}
-                    className="mt-4"
-                  />
-                  <DialogFooter>
-                    <Button onClick={handleCreateTopic}>Create</Button>
-                    <Button
-                      variant="ghost"
-                      onClick={() => setIsDialogOpen(false)}
-                    >
-                      Cancel
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </div>
-        )}
-      </div>
-      {/* Optional: Another Create Topic Button outside suggestions */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogTrigger asChild>
-          <Button className="w-full">Create Topic</Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create a New Topic</DialogTitle>
-            <DialogDescription>
-              Enter the name of the topic you want to create.
-            </DialogDescription>
-          </DialogHeader>
+    <div className="w-full max-w-md space-y-4 relative">
+      {loading && (
+        // Overlay the LoadingScreen
+        <div className="fixed inset-0 bg-white z-50 flex justify-center items-center">
+          <LoadingScreen />
+        </div>
+      )}
+      <div className={loading ? "opacity-50 pointer-events-none" : ""}>
+        <div className="relative">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
           <Input
-            type="text"
-            placeholder="Topic Name"
-            value={newTopicName}
-            onChange={(e) => setNewTopicName(e.target.value)}
-            className="mt-4"
+            type="search"
+            placeholder="Search for a topic..."
+            className="pl-8"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
+            onKeyDown={handleKeyDown}
           />
-          <DialogFooter>
-            <Button onClick={handleCreateTopic}>Create</Button>
-            <Button variant="ghost" onClick={() => setIsDialogOpen(false)}>
-              Cancel
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          {error && <div className="text-red-500">{error}</div>}
+          {showSuggestions && (
+            <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg">
+              {noResults ? (
+                <div className="px-3 py-2 text-gray-500">No results found</div>
+              ) : (
+                suggestions.map((suggestion) => (
+                  <div
+                    key={suggestion._id}
+                    className="flex items-center px-3 py-2 cursor-pointer hover:bg-gray-100"
+                    onMouseDown={() => {
+                      setSearchTerm(suggestion.name);
+                      navigate(`/topics/${suggestion.slug}`); // Navigate on click
+                    }}
+                  >
+                    <Search className="h-4 w-4 mr-2 text-gray-400" />
+                    {suggestion.name}
+                  </div>
+                ))
+              )}
+              <div className="flex justify-center p-2 border-t">
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="w-full">Create Topic</Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Create a New Topic</DialogTitle>
+                      <DialogDescription>
+                        Enter the name of the topic you want to create.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Input
+                      type="text"
+                      placeholder="Topic Name"
+                      value={newTopicName}
+                      onChange={(e) => setNewTopicName(e.target.value)}
+                      className="mt-4"
+                    />
+                    <DialogFooter>
+                      <Button onClick={handleCreateTopic}>Create</Button>
+                      <Button
+                        variant="ghost"
+                        onClick={() => setIsDialogOpen(false)}
+                      >
+                        Cancel
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
+          )}
+        </div>
+        {/* Optional: Another Create Topic Button outside suggestions */}
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="w-full">Create Topic</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create a New Topic</DialogTitle>
+              <DialogDescription>
+                Enter the name of the topic you want to create.
+              </DialogDescription>
+            </DialogHeader>
+            <Input
+              type="text"
+              placeholder="Topic Name"
+              value={newTopicName}
+              onChange={(e) => setNewTopicName(e.target.value)}
+              className="mt-4"
+            />
+            <DialogFooter>
+              <Button onClick={handleCreateTopic}>Create</Button>
+              <Button
+                variant="ghost"
+                onClick={() => setIsDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 };
-
-console.log("Searchbar component loaded");

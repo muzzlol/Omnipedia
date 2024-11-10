@@ -24,7 +24,12 @@ const VoteModal: React.FC<VoteModalProps> = ({ triggerText, title, users, fetchU
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="link" size="sm" onClick={fetchUsers}>
+      <Button
+          className="p-2 cursor-pointer"
+          variant="link"
+          size="sm"
+          onClick={fetchUsers}
+        >
           {triggerText}
         </Button>
       </DialogTrigger>

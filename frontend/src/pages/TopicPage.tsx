@@ -306,7 +306,7 @@ export const TopicPage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-4">{topic.name}</h1>
+      <h1 className="text-5xl font-serif font-bold mb-4 underline">{topic.name}</h1>
       
       {/* Render description as markdown */}
       <ReactMarkdown className="text-lg mb-6">
@@ -392,45 +392,44 @@ export const TopicPage: React.FC = () => {
               <Progress className="w-3/4" value={resource.comprehensiveness} />
               <p className="text-sm text-muted-foreground mt-2">{resource.comprehensiveness}% Topic Coverage</p>
               <div className="flex justify-between items-center mt-4">
-                <div className="flex space-x-4">
-                  {/* Upvote Button with Icons */}
-                  <Button
-                    variant="ghost"
-                    onClick={() => handleUpvote(resource._id)}
-                    aria-label={resource.hasUpvoted ? 'Remove Upvote' : 'Upvote'}
-                  >
-                    {/* Use solid icon if upvoted, else outline icon */}
-                    {resource.hasUpvoted ? <BiSolidUpvote /> : <BiUpvote />}
-                  </Button>
-
-                  {/* Downvote Button with Icons */}
-                  <Button
-                    variant="ghost"
-                    onClick={() => handleDownvote(resource._id)}
-                    aria-label={resource.hasDownvoted ? 'Remove Downvote' : 'Downvote'}
-                  >
-                    {/* Use solid icon if downvoted, else outline icon */}
-                    {resource.hasDownvoted ? <BiSolidDownvote /> : <BiDownvote />}
-                  </Button>
+                <div className="flex space-x-5">
+                  {/* Upvote Section */}
+                  <div className="inline-flex items-center">
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleUpvote(resource._id)}
+                      aria-label={resource.hasUpvoted ? 'Remove Upvote' : 'Upvote'}
+                      className="p-2 cursor-pointer"
+                    >
+                      {resource.hasUpvoted ? <BiSolidUpvote /> : <BiUpvote />}
+                    </Button>
+                    <VoteModal
+                      triggerText={`${resource.upvotes || 0}`}
+                      title="Upvoters"
+                      users={upvoters}
+                      fetchUsers={() => fetchUpvoters(resource._id)}
+                    />
+                  </div>
+                  {/* Downvote Section */}
+                  <div className="inline-flex items-center">
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleDownvote(resource._id)}
+                      aria-label={resource.hasDownvoted ? 'Remove Downvote' : 'Downvote'}
+                      className="p-2 cursor-pointer"
+                    >
+                      {resource.hasDownvoted ? <BiSolidDownvote /> : <BiDownvote />}
+                    </Button>
+                    <VoteModal
+                      triggerText={`${resource.downvotes || 0}`}
+                      title="Downvoters"
+                      users={downvoters}
+                      fetchUsers={() => fetchDownvoters(resource._id)}
+                    />
+                  </div>
                 </div>
                 {/* Other elements can be added here */}
               </div>
-
-              {/* Upvoters Modal */}
-              <VoteModal
-                triggerText={`${resource.upvotes || 0} Upvotes`}
-                title="Upvoters"
-                users={upvoters}
-                fetchUsers={() => fetchUpvoters(resource._id)}
-              />
-
-              {/* Downvoters Modal */}
-              <VoteModal
-                triggerText={`${resource.downvotes || 0} Downvotes`}
-                title="Downvoters"
-                users={downvoters}
-                fetchUsers={() => fetchDownvoters(resource._id)}
-              />
             </CardContent>
           </Card>
         ))}

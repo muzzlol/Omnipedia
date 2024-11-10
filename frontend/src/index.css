@@ -57,6 +57,11 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
   }
+}
+
+html {
+  background-color: #88aaee; /* Match your navbar's blue color */
+  overscroll-behavior-y: none; /* Prevents the overscroll bounce effect */
 }

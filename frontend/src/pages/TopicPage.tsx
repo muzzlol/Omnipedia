@@ -378,12 +378,12 @@ export const TopicPage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2 mb-4">
-                <Badge variant={resource.classification === 'paid' ? 'destructive' : 'default'}>
+                <Badge variant={resource.classification === 'paid' ? 'destructive' : 'green'}>
                   {resource.classification}
                 </Badge>
                 <Badge variant={
-                  resource.skillLevel === 'beginner' ? 'default' :
-                  resource.skillLevel === 'intermediary' ? 'secondary' :
+                  resource.skillLevel === 'beginner' ? 'green' :
+                  resource.skillLevel === 'intermediary' ? 'yellow' :
                   'destructive'
                 }>
                   {resource.skillLevel}

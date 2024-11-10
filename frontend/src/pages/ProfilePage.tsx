@@ -260,6 +260,7 @@ export default function ProfilePage() {
             users={followers}
             fetchUsers={() => fetchFollowers(username)}
           /> */}
+          <span>{profile.followedUsers.length} followers</span>
           <span>•</span>
           <span>{profile.followedUsers.length} following</span>
         </div>

@@ -21,21 +21,21 @@ export const Navbar: React.FC = () => {
       <nav className="hidden md:flex space-x-4">
         {isAuthenticated ? (
           <>
-            <Link to="/profile" className="text-gray-600 hover:text-gray-900">
+            <Link to="/profile" className="text-primary hover:text-primary/80">
               Profile
             </Link>
             <Separator orientation="vertical" className="h-6" />
-            <Link to="/" onClick={logout} className="text-gray-600 hover:text-gray-900">
+            <Link to="/" onClick={logout} className="text-primary hover:text-primary/80">
               Logout
             </Link>
           </>
         ) : (
           <>
-            <Link to="/login" className="text-gray-600 hover:text-gray-900">
+            <Link to="/login" className="text-primary hover:text-primary/80">
               Login
             </Link>
             <Separator orientation="vertical" className="h-6" />
-            <Link to="/register" className="text-gray-600 hover:text-gray-900">
+            <Link to="/register" className="text-primary hover:text-primary/80">
               Register
             </Link>
           </>
@@ -52,21 +52,21 @@ export const Navbar: React.FC = () => {
           <nav className="flex flex-col space-y-4">
             {isAuthenticated ? (
               <>
-                <Link to="/profile" className="text-gray-600 hover:text-gray-900">
+                <Link to="/profile" className="text-primary hover:text-primary/80">
                   Profile
                 </Link>
                 <Separator orientation="horizontal" className="w-full" />
-                <Link to="/" onClick={logout} className="text-gray-600 hover:text-gray-900">
+                <Link to="/" onClick={logout} className="text-primary hover:text-primary/80">
                   Logout
                 </Link>
               </>
             ) : (
               <>
-                <Link to="/login" className="text-gray-600 hover:text-gray-900">
+                <Link to="/login" className="text-primary hover:text-primary/80">
                   Login
                 </Link>
                 <Separator orientation="horizontal" className="w-full" />
-                <Link to="/register" className="text-gray-600 hover:text-gray-900">
+                <Link to="/register" className="text-primary hover:text-primary/80">
                   Register
                 </Link>
               </>

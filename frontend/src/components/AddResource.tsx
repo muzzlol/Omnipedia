@@ -136,16 +136,16 @@ export default function AddResource({ topicId, onAddResource }: Props) {
             {/* Skill Level Select */}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="skillLevel" className="text-right">
-                Skill Level
+                Skill
               </Label>
               <Select value={skillLevel} onValueChange={setSkillLevel} required>
                 <SelectTrigger className="col-span-3" id="skillLevel">
                   <SelectValue placeholder="Select skill level" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="beginner" className="text-green-600 font-medium">Beginner</SelectItem>
-                  <SelectItem value="intermediary" className="text-yellow-600 font-medium">Intermediary</SelectItem>
-                  <SelectItem value="advanced" className="text-red-600 font-medium">Advanced</SelectItem>
+                  <SelectItem value="beginner" className="text-green-400 font-medium">Beginner</SelectItem>
+                  <SelectItem value="intermediary" className="text-yellow-400 font-medium">Intermediary</SelectItem>
+                  <SelectItem value="advanced" className="text-red-400 font-medium">Advanced</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -153,15 +153,15 @@ export default function AddResource({ topicId, onAddResource }: Props) {
             {/* Classification Select */}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="classification" className="text-right">
-                Classification
+                Classify
               </Label>
               <Select value={classification} onValueChange={setClassification} required>
                 <SelectTrigger className="col-span-3" id="classification">
                   <SelectValue placeholder="Select classification" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="free" className="text-green-600 font-medium">Free</SelectItem>
-                  <SelectItem value="paid" className="text-red-600 font-medium">Paid</SelectItem>
+                  <SelectItem value="free" className="text-green-400 font-medium">Free</SelectItem>
+                  <SelectItem value="paid" className="text-red-400 font-medium">Paid</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -181,9 +181,9 @@ export default function AddResource({ topicId, onAddResource }: Props) {
                   onValueChange={(value) => setComprehensiveness(value[0])}
                 />
                 <div className="flex justify-between text-sm text-muted-foreground">
-                  <span className="text-green-600">1</span>
+                  <span className="text-green-400">1</span>
                   <span>{comprehensiveness}</span>
-                  <span className="text-red-600">100</span>
+                  <span className="text-red-400">100</span>
                 </div>
               </div>
             </div>

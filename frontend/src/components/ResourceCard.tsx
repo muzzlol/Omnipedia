@@ -42,9 +42,17 @@ export default function ResourceCard({
           {formatUrl(url)}
         </a>
         <div className="mt-4 flex flex-wrap gap-2">
-          <Badge variant="default">{classification}</Badge>
-          <Badge variant="secondary">Comprehensiveness: {comprehensiveness}</Badge>
-          <Badge variant="outline">{skillLevel}</Badge>
+          <Badge variant={classification === 'paid' ? 'destructive' : 'green'}>
+            {classification}
+          </Badge>
+          <Badge variant={
+            skillLevel === 'beginner' ? 'green' :
+            skillLevel === 'intermediary' ? 'yellow' :
+            'destructive'
+          }>
+            {skillLevel}
+          </Badge>
+          <Badge variant="default">Comprehensiveness: {comprehensiveness}%</Badge>
         </div>
       </CardContent>
     </Card>

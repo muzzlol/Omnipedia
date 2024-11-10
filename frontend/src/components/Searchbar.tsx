@@ -272,8 +272,9 @@ export const SearchBar: React.FC = () => {
           )}
         </div>
         {/* Optional: Another Create Topic Button outside suggestions */}
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
+        <div className="mt-2">
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
             <Button className="w-full">Create Topic</Button>
           </DialogTrigger>
           <DialogContent>
@@ -291,16 +292,20 @@ export const SearchBar: React.FC = () => {
               className="mt-4"
             />
             <DialogFooter>
-              <Button onClick={handleCreateTopic}>Create</Button>
+              <Button onClick={handleCreateTopic}>
+                Create
+              </Button>
               <Button
-                variant="ghost"
+                className="bg-red-600"
+                variant="neutral"
                 onClick={() => setIsDialogOpen(false)}
               >
-                Cancel
+                X
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
+      </div>
       </div>
     </div>
   );

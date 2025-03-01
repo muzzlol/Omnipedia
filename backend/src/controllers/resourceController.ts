@@ -268,7 +268,22 @@ export const generateResourcesForTopic = asyncHandler(
         })
       );
 
+      // // Save the updated topic
+      // const updatedTopic = await topic.save();
+
+      // // Refresh cache
+      // const slug = updatedTopic?.slug;
+      // await redisClient.del(`topic/${slug}`);
+
+      // // Invalidate cache for the topic
+      // if (slug) {
+      //   await redisClient.del(`topic:${slug}`);
+      //   console.log(`Cache invalidated for topic: ${slug}`);
+      // }
+
       await topic.save();
+
+    
 
       res.status(201).json(savedResources);
     } catch (error) {

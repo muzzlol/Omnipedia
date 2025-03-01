@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import ResourceCard from "@/components/ResourceCard";
-import VoteModal from "@/components/VoteModal";
+// import VoteModal from "@/components/VoteModal";
 import axios from "axios";
 
 const API_BASE_URL = 'http://localhost:5001';
@@ -30,11 +30,11 @@ interface Profile {
   resources: any[];
 }
 
-interface User {
-  _id: string;
-  username: string;
-  avatarUrl: string;
-}
+// interface User {
+//   _id: string;
+//   username: string;
+//   avatarUrl: string;
+// }
 
 export default function ProfilePage() {
   const { userId } = useParams<{ userId: string }>();
@@ -45,8 +45,8 @@ export default function ProfilePage() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newAvatarUrl, setNewAvatarUrl] = useState("");
-  const [followers, setFollowers] = useState<User[]>([]);
-  const [following, setFollowing] = useState<User[]>([]);
+  // const [followers, setFollowers] = useState<User[]>([]);
+  // const [following, setFollowing] = useState<User[]>([]);
 
 
   useEffect(() => {
@@ -168,38 +168,38 @@ export default function ProfilePage() {
     return <div className="text-center">Loading...</div>;
   }
 
-  const fetchFollowers = async(username : string) => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/users/${username}/followers`);
-      console.log('Followers:', res.data);
-      setFollowers(res.data);
-    }
-    catch (err: any) {
-      console.error('Failed to fetch followers:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch followers.',
-        variant: 'destructive',
-      });
-    }
-  }
+  // const fetchFollowers = async(username : string) => {
+  //   try {
+  //     const res = await axios.get(`${API_BASE_URL}/users/${username}/followers`);
+  //     console.log('Followers:', res.data);
+  //     setFollowers(res.data);
+  //   }
+  //   catch (err: any) {
+  //     console.error('Failed to fetch followers:', err);
+  //     toast({
+  //       title: 'Error',
+  //       description: 'Failed to fetch followers.',
+  //       variant: 'destructive',
+  //     });
+  //   }
+  // }
 
-  const fetchFollowing = async(username : string) => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/users/${username}/following`);
-      console.log('Followers:', res.data);
-      return res.data;
-      setFollowing(res.data);
-    }
-    catch (err: any) {
-      console.error('Failed to fetch followers:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch followers.',
-        variant: 'destructive',
-      });
-    }
-  }
+  // const fetchFollowing = async(username : string) => {
+  //   try {
+  //     const res = await axios.get(`${API_BASE_URL}/users/${username}/following`);
+  //     console.log('Followers:', res.data);
+  //     return res.data;
+  //     setFollowing(res.data);
+  //   }
+  //   catch (err: any) {
+  //     console.error('Failed to fetch followers:', err);
+  //     toast({
+  //       title: 'Error',
+  //       description: 'Failed to fetch followers.',
+  //       variant: 'destructive',
+  //     });
+  //   }
+  // }
 
   
 

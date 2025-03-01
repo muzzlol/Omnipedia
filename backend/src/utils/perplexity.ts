@@ -20,14 +20,14 @@ export async function generateDescription(topicName: string): Promise<GeneratedD
     const response = await axios.post<PerplexityResponse>(
       'https://api.perplexity.ai/chat/completions',
       {
-        model: "llama-3.1-sonar-small-128k-online",
+        model: "sonar",
         messages: [
           { role: "system", content: "Be precise and concise." },
           { role: "user", content: `Generate a very concise description for the topic: ${sanitizedTopicName}` }
         ],
         temperature: 0.2,
         top_p: 0.9,
-        max_tokens: 100,
+        max_tokens: 300,
         stream: false
       },
       {
@@ -50,7 +50,6 @@ export async function generateDescription(topicName: string): Promise<GeneratedD
   }
 }
 
-// Add ResourceData interface
 export interface ResourceData {
   type: string;
   url: string;
@@ -59,7 +58,6 @@ export interface ResourceData {
   skillLevel: 'beginner' | 'intermediary' | 'advanced';
 }
 
-// Add this new function to generate resources
 export async function generateResources(topicName: string): Promise<ResourceData[]> {
   // Sanitize the topicName by removing any text within square brackets, including the brackets
   const sanitizedTopicName = topicName.replace(/\[.*?\]/g, '').trim();
@@ -67,7 +65,7 @@ export async function generateResources(topicName: string): Promise<ResourceData
     const response = await axios.post<PerplexityResponse>(
       'https://api.perplexity.ai/chat/completions',
       {
-        model: "llama-3.1-sonar-huge-128k-online",
+        model: "sonar",
         messages: [
           {
             role: "system",
